@@ -1681,16 +1681,6 @@ public class UIUtils {
 
     @Nullable
     public static Shell getActiveWorkbenchShell() {
-        if (PlatformUI.isWorkbenchRunning()) {
-            IWorkbench workbench = PlatformUI.getWorkbench();
-            IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-            if (window != null) {
-                Shell shell = window.getShell();
-                if (shell != null && shell.isVisible()) {
-                    return shell;
-                }
-            }
-        }
         Display display = Display.getCurrent();
         Shell activeShell = display.getActiveShell();
         if (activeShell != null) {
@@ -1702,7 +1692,20 @@ public class UIUtils {
                 return shell;
             }
         }
-        return shells.length > 0 ? shells[0] : null;
+        if (shells.length > 0) {
+            return shells[0];
+        }
+        if (PlatformUI.isWorkbenchRunning()) {
+            IWorkbench workbench = PlatformUI.getWorkbench();
+            IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+            if (window != null) {
+                Shell shell = window.getShell();
+                if (shell != null && shell.isVisible()) {
+                    return shell;
+                }
+            }
+        }
+        return null;
     }
 
     public static DBRRunnableContext getDefaultRunnableContext() {
