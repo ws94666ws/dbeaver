@@ -190,7 +190,7 @@ public class AttributePart extends NodePart {
 
         if (value != EditPart.SELECTED_NONE) {
             if (this.getViewer() instanceof ERDGraphicalViewer && associatedRelationsHighlighing == null) {
-                Color color = UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_BORDERS_COLOR_5);
+                Color color = UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_BORDERS_COLOR_1);
                 
                 associatedRelationsHighlighing = ((ERDGraphicalViewer) this.getViewer()).getEditor().getHighlightingManager().highlightAttributeAssociations(this, color);
             }

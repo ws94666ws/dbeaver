@@ -63,12 +63,12 @@ public class AttributeItemFigure extends Figure
 
         GridLayout layout = new GridLayout(1, false);
         layout.marginHeight = 0;
-        layout.marginWidth = 0;
+        layout.marginWidth = 5;
         layout.verticalSpacing = 0;
-        layout.horizontalSpacing = 0;
+        layout.horizontalSpacing = 5;
         setLayoutManager(layout);
-        LineBorder border = new LineBorder(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_BORDERS_COLOR_5), ERDUIConstants.DEFAULT_ENTITY_BORDER_WIDTH);
-        setBorder(border);
+//        LineBorder border = new LineBorder(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_BORDERS_COLOR_5), ERDUIConstants.DEFAULT_ENTITY_BORDER_WIDTH);
+//        setBorder(border);
         setOpaque(true);
         
 

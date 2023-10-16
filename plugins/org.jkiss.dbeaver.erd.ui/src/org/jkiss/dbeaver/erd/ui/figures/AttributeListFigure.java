@@ -40,8 +40,8 @@ public class AttributeListFigure extends Figure {
     public AttributeListFigure(ERDEntity entity, boolean key) {
         GridLayout layout = new GridLayout(2, false);
         layout.verticalSpacing = 3;
-        layout.marginHeight = 0;
-        layout.marginWidth = 0;
+        layout.marginHeight = 3;
+        layout.marginWidth = 3;
 /*
         FlowLayout layout = new FlowLayout(false);
 		layout.setMinorAlignment(FlowLayout.ALIGN_TOPLEFT);
@@ -71,7 +71,7 @@ public class AttributeListFigure extends Figure {
 
         @Override
         public Insets getInsets(IFigure figure) {
-            return new Insets(5, 5, 5, 5);
+            return new Insets(0, -1, 0, -1);
         }
 
         @Override

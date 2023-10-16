@@ -145,36 +145,36 @@ public class AssociationPart extends PropertyAwareConnectionPart {
             if (entityPart == null) {
                 entityPart = getTarget();
             }
-            final DBPPreferenceStore store = ERDUIActivator.getDefault().getPreferences();
-            if (entityPart instanceof GraphicalEditPart
-                && (!store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI)
-                    || ERDAttributeVisibility.isHideAttributeAssociations(store))) {
-                // Self link
-                final IFigure entityFigure = ((GraphicalEditPart) entityPart).getFigure();
-                final Dimension figureSize = entityFigure.getMinimumSize();
-                int entityWidth = figureSize.width;
-                int entityHeight = figureSize.height;
-
-                List<RelativeBendpoint> bends = new ArrayList<>();
-                int w2 = entityWidth / 2;
-                int h2 = entityHeight / 2;
-                RelativeBendpoint bp1 = new RelativeBendpoint(conn);
-                bp1.setRelativeDimensions(new Dimension(entityWidth, h2), new Dimension(entityWidth, -h2 + w2));
-                bends.add(bp1);
-
-                RelativeBendpoint bp2 = new RelativeBendpoint(conn);
-                bp2.setRelativeDimensions(new Dimension(entityWidth, h2), new Dimension(entityWidth + 50, -h2 + w2 / 2));
-                bends.add(bp2);
-
-                RelativeBendpoint bp3 = new RelativeBendpoint(conn);
-                bp3.setRelativeDimensions(new Dimension(entityWidth, h2), new Dimension(entityWidth + 50, -h2 - w2 / 2));
-                bends.add(bp3);
-
-                RelativeBendpoint bp4 = new RelativeBendpoint(conn);
-                bp4.setRelativeDimensions(new Dimension(entityWidth, h2), new Dimension(entityWidth, -h2 - w2));
-                bends.add(bp4);
-                conn.setRoutingConstraint(bends);
-            }
+//            final DBPPreferenceStore store = ERDUIActivator.getDefault().getPreferences();
+//            if (entityPart instanceof GraphicalEditPart
+//                && (!store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI)
+//                    || ERDAttributeVisibility.isHideAttributeAssociations(store))) {
+//                // Self link
+//                final IFigure entityFigure = ((GraphicalEditPart) entityPart).getFigure();
+//                final Dimension figureSize = entityFigure.getMinimumSize();
+//                int entityWidth = figureSize.width;
+//                int entityHeight = figureSize.height;
+//
+//                List<RelativeBendpoint> bends = new ArrayList<>();
+//                int w2 = entityWidth / 2;
+//                int h2 = entityHeight / 2;
+//                RelativeBendpoint bp1 = new RelativeBendpoint(conn);
+//                bp1.setRelativeDimensions(new Dimension(entityWidth, h2), new Dimension(entityWidth, -h2 + w2));
+//                bends.add(bp1);
+//
+//                RelativeBendpoint bp2 = new RelativeBendpoint(conn);
+//                bp2.setRelativeDimensions(new Dimension(entityWidth, h2), new Dimension(entityWidth + 50, -h2 + w2 / 2));
+//                bends.add(bp2);
+//
+//                RelativeBendpoint bp3 = new RelativeBendpoint(conn);
+//                bp3.setRelativeDimensions(new Dimension(entityWidth, h2), new Dimension(entityWidth + 50, -h2 - w2 / 2));
+//                bends.add(bp3);
+//
+//                RelativeBendpoint bp4 = new RelativeBendpoint(conn);
+//                bp4.setRelativeDimensions(new Dimension(entityWidth, h2), new Dimension(entityWidth, -h2 - w2));
+//                bends.add(bp4);
+//                conn.setRoutingConstraint(bends);
+//            }
         }
         if (cLayer.getConnectionRouter() instanceof OrthogonalShortPathRouting) {
             ERDNotationDescriptor diagramNotationDescriptor = getDiagramPart().getDiagram().getDiagramNotation();
