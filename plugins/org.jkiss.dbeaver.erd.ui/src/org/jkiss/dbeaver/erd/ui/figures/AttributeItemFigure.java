@@ -17,15 +17,19 @@
 package org.jkiss.dbeaver.erd.ui.figures;
 
 import org.eclipse.draw2d.Figure;
+import org.eclipse.draw2d.GridLayout;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.Label;
+import org.eclipse.draw2d.LineBorder;
 import org.eclipse.draw2d.ToolbarLayout;
 import org.eclipse.draw2d.geometry.Insets;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.layout.GridData;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
+import org.jkiss.dbeaver.erd.model.ERDEntity;
 import org.jkiss.dbeaver.erd.model.ERDEntityAttribute;
 import org.jkiss.dbeaver.erd.ui.ERDUIConstants;
 import org.jkiss.dbeaver.erd.ui.editor.ERDViewStyle;
@@ -33,7 +37,9 @@ import org.jkiss.dbeaver.erd.ui.model.ERDDecorator;
 import org.jkiss.dbeaver.erd.ui.model.EntityDiagram;
 import org.jkiss.dbeaver.erd.ui.part.AttributePart;
 import org.jkiss.dbeaver.erd.ui.part.DiagramPart;
+import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.DBPImage;
+import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.ui.DBeaverIcons;
 import org.jkiss.dbeaver.ui.UIUtils;
 
@@ -55,11 +61,18 @@ public class AttributeItemFigure extends Figure
 
         ERDEntityAttribute attribute = part.getAttribute();
 
-        ToolbarLayout layout = new ToolbarLayout(true);
-        layout.setSpacing(3);
+        GridLayout layout = new GridLayout(1, false);
+        layout.marginHeight = 0;
+        layout.marginWidth = 0;
+        layout.verticalSpacing = 0;
+        layout.horizontalSpacing = 0;
+        setLayoutManager(layout);
+        LineBorder border = new LineBorder(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_BORDERS_COLOR_5), ERDUIConstants.DEFAULT_ENTITY_BORDER_WIDTH);
+        setBorder(border);
+        setOpaque(true);
+        
 
         setLayoutManager(layout);
-
         EntityDiagram diagram = part.getDiagramPart().getDiagram();
 
         boolean showCheckboxes = diagram.getDecorator().showCheckboxes();
@@ -177,5 +190,12 @@ public class AttributeItemFigure extends Figure
                 .setWidth(bounds.width - insets.left - insets.right);
         }
         return super.getBounds();
+    }
+    
+    @Override
+    public String toString() {
+        ERDEntity entity = part.getEntity();
+        String objectFullName = DBUtils.getObjectFullName(entity.getObject(), DBPEvaluationContext.DDL);
+        return String.format("AttributeItemFigure:[%s:%s]\t[%s]", objectFullName, getLabel().getText(), getBounds());
     }
 }

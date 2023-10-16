@@ -111,7 +111,7 @@ public class AssociationPart extends PropertyAwareConnectionPart {
         if (showComments) {
             ERDAssociation association = getAssociation();
             if (association != null && association.getObject() != null && !CommonUtils.isEmpty(association.getObject().getDescription())) {
-                ConnectionLocator descLabelLocator = new ConnectionLocator(conn, ConnectionLocator.MIDDLE);
+                ConnectionLocator descLabelLocator = new ConnectionLocator(conn, ConnectionLocator.SOURCE);
                 //descLabelLocator.setRelativePosition(50);
                 //descLabelLocator.setGap(50);
                 Label descLabel = new Label(association.getObject().getDescription());

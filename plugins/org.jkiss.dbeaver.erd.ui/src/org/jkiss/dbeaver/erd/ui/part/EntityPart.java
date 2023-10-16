@@ -304,18 +304,19 @@ public class EntityPart extends NodePart {
     }
 
     private boolean supportsAttributeAssociations() {
-        final DBPPreferenceStore store = ERDUIActivator.getDefault().getPreferences();
-        return store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI)
-               && !ERDAttributeVisibility.isHideAttributeAssociations(store);
+        return true;
+//        final DBPPreferenceStore store = ERDUIActivator.getDefault().getPreferences();
+//        return store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI)
+//               && !ERDAttributeVisibility.isHideAttributeAssociations(store);
     }
 
     @Override
     protected List<ERDAssociation> getModelTargetConnections() {
         final DBPPreferenceStore store = ERDUIActivator.getDefault().getPreferences();
-        if (!store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI)
-            || ERDAttributeVisibility.isHideAttributeAssociations(store)) {
-            return super.getModelTargetConnections();
-        }
+//        if (!store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI)
+//            || ERDAttributeVisibility.isHideAttributeAssociations(store)) {
+//            return super.getModelTargetConnections();
+//        }
         List<ERDAssociation> list = new ArrayList<>();
         for (ERDAssociation erdAssociation : super.getModelTargetConnections()) {
             if (erdAssociation.getObject().getConstraintType() == DBSEntityConstraintType.INHERITANCE

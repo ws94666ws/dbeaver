@@ -105,6 +105,14 @@ public class ERDUtils
         }
     }
 
+    public static boolean isUniqAssociation(ERDAssociation association) {
+        try {
+            return DBUtils.isUniqAssociation(new VoidProgressMonitor(), association.getObject());
+        } catch (DBException e) {
+            log.debug(e);
+            return false;
+        }
+    }
     public static ERDEntityAttribute getAttributeByModel(ERDEntity entity, DBSEntityAttribute attr) {
 	    for (ERDEntityAttribute erdAttr : entity.getAttributes()) {
 	        if (erdAttr.getObject() == attr) {

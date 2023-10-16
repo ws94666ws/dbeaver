@@ -16,6 +16,7 @@
  */
 package org.jkiss.dbeaver.erd.ui.router;
 
+
 import org.eclipse.draw2d.AbstractRouter;
 import org.eclipse.draw2d.Bendpoint;
 import org.eclipse.draw2d.Connection;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+
 public class OrthogonalShortPathRouting extends AbstractRouter {
 
     private double indentation = 30.0;
@@ -50,6 +52,7 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
     private Map<Connection, Path> connectionToPaths;
     private boolean isDirty;
     private ShortestPathRouter algorithm = new ShortestPathRouter();
+    //private OrthogonalShortRouter algorithm = new OrthogonalShortRouter();
     private final IFigure container;
     private final Set<Connection> staleConnections = new HashSet<>();
     private final LayoutListener listener = new LayoutTracker();
@@ -74,7 +77,6 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
      */
     public OrthogonalShortPathRouting(IFigure container) {
         isDirty = false;
-        algorithm = new ShortestPathRouter();
         this.container = container;
     }
 
@@ -85,9 +87,17 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
         if (figuresToBounds.containsKey(child)) {
             return;
         }
+        
+        
+        
+        
         Rectangle bounds = child.getBounds().getCopy();
         algorithm.addObstacle(bounds);
         figuresToBounds.put(child, bounds);
+        
+        System.out.println(String.format("[v]:Child added ------>>>> \t\t[%s]",bounds));
+        
+
         child.addFigureListener(figureListener);
         isDirty = true;
     }
@@ -96,6 +106,22 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
         figuresToBounds = new HashMap<>();
         container.getChildren().forEach(this::addChild);
         container.addLayoutListener(listener);
+//        List<? extends IFigure> children = container.getChildren();
+//        for (IFigure entity : children) {
+//            if (entity instanceof EntityFigure) {
+//                for (IFigure attributeList : entity.getChildren()) {
+//                    if (attributeList instanceof AttributeListFigure) {
+//                        for (IFigure attribute: attributeList.getChildren()) {
+//                            if (attribute instanceof AttributeItemFigure) {
+//                                System.out.println((AttributeItemFigure) attribute);
+//                                addChild(attribute);
+//                                container.addLayoutListener(listener);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
     private void unhookAll() {
@@ -162,13 +188,16 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
             if (constraint == null) {
                 constraint = Collections.emptyList();
             }
+            
 
             Point start = conn.getSourceAnchor().getReferencePoint().getCopy();
             Point end = conn.getTargetAnchor().getReferencePoint().getCopy();
 
             container.translateToRelative(start);
             container.translateToRelative(end);
-
+            
+            
+            
             path.setStartPoint(start);
             path.setEndPoint(end);
 
@@ -252,8 +281,9 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
                 Path path = (Path) element;
                 current = (Connection) path.data;
                 current.revalidate();
-
+                
                 PointList points = path.getPoints().getCopy();
+                
                 Point ref1 = new PrecisionPoint(points.getPoint(1));
                 Point ref2 = new PrecisionPoint(points.getPoint(points.size() - 2));
                 current.translateToAbsolute(ref1);
@@ -262,31 +292,67 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
                 Point end = current.getTargetAnchor().getLocation(ref2).getCopy();
                 current.translateToRelative(start);
                 current.translateToRelative(end);
-                points.setPoint(start, 0);
-                points.setPoint(end, points.size() - 1);
+                
+                
+                
+                
+               // points.setPoint(start, 0);
+               // points.setPoint(end, points.size() - 1);
 
                 if (indentation != 0) {
                     // first
                     PointList modifiedPoints = new PointList();
                     modifiedPoints.addPoint(points.getFirstPoint());
-                    int direction1 = 0;
-                    int direction2 = 0;
+                    int directionSrcToTrg = 0;
+                    int directionTrgToSrc = 0;
                     IFigure srcOwner = current.getSourceAnchor().getOwner();
-                    if (srcOwner instanceof EntityFigure) {
-                        Rectangle bounds = ((EntityFigure) srcOwner).getBounds().getCopy();
-                        direction1 = 180 - getDirection(bounds, points.getPoint(0).getCopy());
-                    }
+                    Rectangle srcBounds = srcOwner.getBounds().getCopy();
+                    VertexRectangle vrSource = new  VertexRectangle(srcBounds);
+                    directionSrcToTrg = 180-getLRDirection(srcBounds, points.getPoint(0).getCopy());
+                
                     IFigure targetOwner = current.getTargetAnchor().getOwner();
-                    if (targetOwner instanceof EntityFigure) {
-                        Rectangle bounds = ((EntityFigure) targetOwner).getBounds().getCopy();
-                        direction2 = getDirection(bounds, points.getPoint(points.size() - 1).getCopy());
+                    Rectangle trgBounds = targetOwner.getBounds().getCopy();
+                    VertexRectangle vrTarget= new  VertexRectangle(trgBounds);
+                    directionTrgToSrc = getLRDirection(trgBounds,  points.getPoint(points.size() - 1).getCopy());
+                    
+                    //left to right
+                    if (directionSrcToTrg == LEFT) {
+                        points.setPoint(vrSource.centerRight, 0);
+                        points.setPoint(vrTarget.centerLeft, points.size() - 1);
+
+                    } else {
+                        points.setPoint(vrSource.centerLeft, 0);
+                        points.setPoint(vrTarget.centerRight, points.size() - 1);
                     }
+//                    if (srcOwner instanceof EntityFigure) {
+//                        Rectangle bounds = ((EntityFigure) srcOwner).getBounds().getCopy();
+//                        directionSrcToTrg = 180 - getDirection(bounds, points.getPoint(0).getCopy());
+//                    }
+                    
+//                    if (targetOwner instanceof EntityFigure) {
+//                        Rectangle bounds = ((EntityFigure) targetOwner).getBounds().getCopy();
+//                        directionTrgtoSrc = getDirection(bounds, points.getPoint(points.size() - 1).getCopy());
+//                    }
+                    System.out.println("Src:" + srcOwner);
+                    System.out.println("Trg:" + targetOwner);
+                    System.out.println("DirectionSrcToTrg: " + directionSrcToTrg);
+//                    
+//                    if(directionSrcToTrg == RIGHT) {
+//                      
+//                        System.out.println("Right:" + vr.centerRight);
+//                    }
+//                    if(directionSrcToTrg == LEFT) {
+//                        System.out.println("Src:" + srcOwner);
+//                        System.out.println("Trg:" + targetOwner);
+//                        System.out.println("Left:" + vr.centerLeft);
+//                    }
+                    
                     // from 1-->>2
-                    int dx1 = (int) (Math.cos(Math.toRadians(direction1)) * indentation);
-                    int dy1 = (int) (Math.sin(Math.toRadians(direction1)) * indentation);
+                    int dx1 = (int) (Math.cos(Math.toRadians(directionSrcToTrg)) * indentation);
+                    int dy1 = (int) (Math.sin(Math.toRadians(directionSrcToTrg)) * indentation);
                     // from 1<<--2
-                    int dx2 = (int) (Math.cos(Math.toRadians(direction2)) * indentation);
-                    int dy2 = (int) (Math.sin(Math.toRadians(direction2)) * indentation);
+                    int dx2 = (int) (Math.cos(Math.toRadians(directionTrgToSrc)) * indentation);
+                    int dy2 = (int) (Math.sin(Math.toRadians(directionTrgToSrc)) * indentation);
                     Point p1 = new Point(start.x + dx1, start.y - dy1);
                     modifiedPoints.addPoint(p1);
                     // add other middle points
@@ -316,6 +382,27 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
             }
             ignoreInvalidate = false;
         }
+    }
+    
+    protected int getLRDirection(Rectangle r, Point p) {
+        int i = 0;
+        int direction = LEFT;
+        int distance = Math.abs(r.x - p.x);
+//        i = Math.abs(r.y - p.y);
+//        if (i <= distance) {
+//            distance = i;
+//            direction = UP;
+//        }
+//        i = Math.abs(r.bottom() - p.y);
+//        if (i <= distance) {
+//            distance = i;
+//            direction = DOWN;
+//        }
+        i = Math.abs(r.right() - p.x);
+        if (i < distance) {
+            direction = RIGHT;
+        }
+        return direction;
     }
 
     protected int getDirection(Rectangle r, Point p) {

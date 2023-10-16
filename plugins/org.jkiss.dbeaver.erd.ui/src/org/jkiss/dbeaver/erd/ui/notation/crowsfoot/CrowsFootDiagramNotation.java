@@ -32,6 +32,8 @@ public class CrowsFootDiagramNotation extends ERDNotationBase implements ERDNota
     @Override
     public void applyNotationForArrows(PolylineConnection conn, ERDAssociation association, Color bckColor, Color frgColor) {
         DBSEntityConstraintType constraintType = association.getObject().getConstraintType();
+        System.out.println("---");
+        System.out.println("constraintType: " + constraintType);
         if (constraintType == DBSEntityConstraintType.PRIMARY_KEY) {
             // source 0..1
             final CrowsFootPolylineDecoration sourceDecor = new CrowsFootPolylineDecoration(ERDAssociationType.ZERO_OR_ONE);
@@ -42,6 +44,12 @@ public class CrowsFootDiagramNotation extends ERDNotationBase implements ERDNota
             association.getSourceEntity() instanceof ERDEntity &&
             association.getTargetEntity() instanceof ERDEntity) {
             // source - 1..n
+            System.out.println("1: " + ERDUtils.isOptionalAssociation(association));
+            System.out.println("2: " + ERDUtils.isUniqAssociation(association));
+            System.out.println("3: " + ERDUtils.isIdentifyingAssociation(association));
+            System.out.println("4: " + constraintType.isUnique());
+            System.out.println("5: " + constraintType.isLogical());
+            
             final CrowsFootPolylineDecoration sourceDecor = new CrowsFootPolylineDecoration(ERDAssociationType.ONE_OR_MANY);
             sourceDecor.setFill(true);
             sourceDecor.setBackgroundColor(bckColor);
@@ -50,6 +58,8 @@ public class CrowsFootDiagramNotation extends ERDNotationBase implements ERDNota
             srcEndpointLocator.setVDistance(LBL_V_DISTANCE);
             srcEndpointLocator.setUDistance(LBL_U_DISTANCE);
             conn.add(getLabel(LABEL_1_TO_N, frgColor), srcEndpointLocator);
+            
+            
             if (ERDUtils.isOptionalAssociation(association)) {
                 // target - 0..1
                 final CrowsFootPolylineDecoration targetDecor = new CrowsFootPolylineDecoration(ERDAssociationType.ZERO_OR_ONE);

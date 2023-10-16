@@ -81,9 +81,9 @@ public class AttributePart extends NodePart {
     @Override
     protected void addSourceConnection(ConnectionEditPart connection, int index) {
         final DBPPreferenceStore store = ERDUIActivator.getDefault().getPreferences();
-        if (!store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI) || ERDAttributeVisibility.isHideAttributeAssociations(store)) {
-            return;
-        }
+//        if (!store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI) || ERDAttributeVisibility.isHideAttributeAssociations(store)) {
+//            return;
+//        }
         if (((AssociationPart) connection).getAssociation().getSourceAttributes().contains(getAttribute())) {
             super.addSourceConnection(connection, index);
         }
@@ -92,9 +92,9 @@ public class AttributePart extends NodePart {
     @Override
     protected List<ERDAssociation> getModelSourceConnections() {
         final DBPPreferenceStore store = ERDUIActivator.getDefault().getPreferences();
-        if (!store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI) || ERDAttributeVisibility.isHideAttributeAssociations(store)) {
-            return Collections.emptyList();
-        }
+//        if (!store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI) || ERDAttributeVisibility.isHideAttributeAssociations(store)) {
+//            return Collections.emptyList();
+//        }
         List<ERDAssociation> list = new ArrayList<>();
         for (ERDAssociation erdAssociation : super.getModelSourceConnections()) {
             if (erdAssociation.getSourceAttributes().contains(getAttribute()) && erdAssociation.getSourceEntity() != null) {
@@ -107,9 +107,9 @@ public class AttributePart extends NodePart {
     @Override
     protected List<ERDAssociation> getModelTargetConnections() {
         final DBPPreferenceStore store = ERDUIActivator.getDefault().getPreferences();
-        if (!store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI) || ERDAttributeVisibility.isHideAttributeAssociations(store)) {
-            return Collections.emptyList();
-        }
+//        if (!store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI) || ERDAttributeVisibility.isHideAttributeAssociations(store)) {
+//            return Collections.emptyList();
+//        }
         List<ERDAssociation> list = new ArrayList<>();
         for (ERDAssociation erdAssociation : super.getModelTargetConnections()) {
             if (erdAssociation.getTargetAttributes().contains(getAttribute()) && erdAssociation.getTargetEntity() != null) {
@@ -122,9 +122,9 @@ public class AttributePart extends NodePart {
     @Override
     protected void addTargetConnection(ConnectionEditPart connection, int index) {
         final DBPPreferenceStore store = ERDUIActivator.getDefault().getPreferences();
-        if (!store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI) || ERDAttributeVisibility.isHideAttributeAssociations(store)) {
-            return;
-        }
+//        if (!store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI) || ERDAttributeVisibility.isHideAttributeAssociations(store)) {
+//            return;
+//        }
         if (((AssociationPart) connection).getAssociation().getTargetAttributes().contains(getAttribute())) {
             super.addTargetConnection(connection, index);
         }
@@ -190,7 +190,8 @@ public class AttributePart extends NodePart {
 
         if (value != EditPart.SELECTED_NONE) {
             if (this.getViewer() instanceof ERDGraphicalViewer && associatedRelationsHighlighing == null) {
-                Color color = UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_FK_HIGHLIGHTING);
+                Color color = UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_BORDERS_COLOR_5);
+                
                 associatedRelationsHighlighing = ((ERDGraphicalViewer) this.getViewer()).getEditor().getHighlightingManager().highlightAttributeAssociations(this, color);
             }
         } else if (associatedRelationsHighlighing != null) {

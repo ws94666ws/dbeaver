@@ -1008,6 +1008,21 @@ public final class DBUtils {
         }
         return false;
     }
+    
+    public static boolean isUniqAssociation(@NotNull DBRProgressMonitor monitor, @NotNull DBSEntityAssociation association) throws DBException {
+        if (!(association instanceof DBSEntityReferrer)) {
+            return false;
+        }
+        boolean unique = association.getConstraintType().isUnique();
+
+        for (DBSEntityAttributeRef ref : CommonUtils.safeCollection(((DBSEntityReferrer) association).getAttributeReferences(monitor))) {
+            DBSEntityAttribute attribute = ref.getAttribute();
+            if (attribute != null && attribute.isRequired()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @NotNull
     public static String getDefaultDataTypeName(@NotNull DBSObject objectContainer, DBPDataKind dataKind)

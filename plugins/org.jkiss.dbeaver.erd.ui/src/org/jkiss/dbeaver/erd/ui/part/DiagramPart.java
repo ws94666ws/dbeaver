@@ -142,6 +142,7 @@ public class DiagramPart extends PropertyAwarePart {
             router = new MikamiTabuchiConnectionRouter(figure);
         } else {
             router = new OrthogonalShortPathRouting(figure);
+            //router = new ManhattanConnectionRouter();
         }
         cLayer.setConnectionRouter(router);
         return figure;

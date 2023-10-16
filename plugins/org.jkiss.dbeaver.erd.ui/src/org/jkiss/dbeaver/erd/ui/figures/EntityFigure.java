@@ -307,4 +307,11 @@ public class EntityFigure extends Figure {
             super.remove(figure);
         }
     }
+    
+    @Override
+    public String toString() {
+        ERDEntity entity = part.getEntity();
+        String objectFullName = DBUtils.getObjectFullName(entity.getObject(), DBPEvaluationContext.DDL);
+        return "Entity:[" + objectFullName + "] bounds:[" + this.getBounds().toString()+"]";
+    }
 }
