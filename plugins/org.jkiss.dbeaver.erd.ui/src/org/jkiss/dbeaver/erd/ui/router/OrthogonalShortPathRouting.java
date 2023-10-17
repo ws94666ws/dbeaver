@@ -303,10 +303,11 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
                     // first
                     // modifiedPoints.addPoint(start);
                     // direction1 = 180 - getDirection(bounds, points.getPoint(0).getCopy())
-                    int direction = getDirection2(srcBounds, trgBounds);
-
-                    int directionSrcToTrg = 180 - getLRDirection(srcBounds, trgBounds.getTopLeft());
-                    int directionTrgToSrc = directionSrcToTrg;
+                    int direction2 = getDirection2(srcBounds, trgBounds);
+                    int direction = getLRDirection(srcBounds, trgBounds.getTopLeft());
+                    
+                     int directionSrcToTrg = 0;
+                     int directionTrgToSrc = 0;
 
                     if (parentSrc.equals(parentTrg)) {
                         // connection inside entity, to ourself
@@ -335,6 +336,8 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
                             break;
                         case LEFT:
                             System.out.println("LEFT TO RIGHT");
+                            directionSrcToTrg = 180 - LEFT;
+                            directionTrgToSrc = 180 - LEFT;
                             start = vrSource.centerLeft;
                             end = vrTarget.centerRight;
                             break;
@@ -344,9 +347,11 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
                             end = vrTarget.centerLeft;
                             break;
                         case UNDEFINED:
-                            System.out.println("TO OURSELF");
-                            start = vrSource.centerRight;
-                            end = vrTarget.centerRight;
+                            System.out.println("(UNDEFINED)TO OURSELF");
+                            directionSrcToTrg = 180 - LEFT;
+                            directionTrgToSrc = LEFT;
+                            start = vrSource.centerLeft;
+                            end = vrTarget.centerLeft;
                             break;
                         default:
                             System.out.println("?????");
@@ -434,69 +439,84 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
     }
 
     protected int getDirection(Rectangle r, Point p) {
-        int i = 0;
+        
         int direction = LEFT;
-        int distance = Math.abs(r.x - p.x);
-        i = Math.abs(r.y - p.y);
-        if (i <= distance) {
-            distance = i;
+        int dX = Math.abs(r.x - p.x);
+        int dY = Math.abs(r.y - p.y);
+        
+        if (dY <= dX) {
+            dX = dY;
             direction = UP;
         }
-        i = Math.abs(r.bottom() - p.y);
-        if (i <= distance) {
-            distance = i;
+        dY = Math.abs(r.bottom() - p.y);
+        if (dY <= dX) {
+            dX = dY;
             direction = DOWN;
         }
-        i = Math.abs(r.right() - p.x);
-        if (i < distance) {
+        dY = Math.abs(r.right() - p.x);
+        if (dY < dX) {
             direction = RIGHT;
         }
         return direction;
     }
 
     protected int getDirection(Rectangle r1, Rectangle r2) {
-        int i = 0;
+        
         int direction = LEFT;
-        int distance = Math.abs(r1.x - r2.x);
-        i = Math.abs(r1.y - r2.y);
-        if (i <= distance) {
-            distance = i;
+        int dX = Math.abs(r1.x - r2.x);
+        int dY = Math.abs(r1.y - r2.y);
+        if (dY <= dX) {
+            dX = dY;
             direction = UP;
         }
-        i = Math.abs(r1.bottom() - r2.y);
-        if (i <= distance) {
-            distance = i;
+        dY = Math.abs(r1.bottom() - r2.y);
+        if (dY <= dX) {
+            dX = dY;
             direction = DOWN;
         }
-        i = Math.abs(r1.right() - r2.x);
-        if (i < distance) {
+        dY = Math.abs(r1.right() - r2.x);
+        if (dY < dX) {
             direction = RIGHT;
         }
         return direction;
     }
 
     protected int getDirection2(Rectangle r1, Rectangle r2) {
-        int i = 0;
         int direction = LEFT;
-        int distance = Math.abs(r1.x - r2.x);
-        i = Math.abs(r1.y - r2.y);
-        if (i <= distance) {
-            distance = i;
+        int dX = Math.abs(r1.x - r2.x);
+        int dY = Math.abs(r1.y - r2.y);
+        
+        if(r1.y > r2.bottom() ) {
+            // r1 down of r2
             if (r1.right() > r2.x &&
                 r1.right() < r2.right()) {
                 direction = UP;
             }
-        }
-        i = Math.abs(r1.bottom() - r2.y);
-        if (i <= distance) {
-            distance = i;
+        }else {
+            // r2 down of r1
             if (r2.x < r1.right() &&
                 r2.x > r1.x) {
                 direction = DOWN;
             }
         }
-        i = Math.abs(r1.right() - r2.x);
-        if (i < distance) {
+        
+//        if (dY <= dX) {
+//            dX = dY;
+//            if (r1.right() > r2.x &&
+//                r1.right() < r2.right()) {
+//                direction = UP;
+//            }
+//        }
+//        dY = Math.abs(r1.bottom() - r2.y);
+//        if (dY <= dX) {
+//            dX = dY;
+//            if (r2.x < r1.right() &&
+//                r2.x > r1.x) {
+//                direction = DOWN;
+//            }
+//        }
+        dY = Math.abs(r1.right() - r2.x);
+        if (dY < dX) {
             direction = RIGHT;
         }
         return direction;
