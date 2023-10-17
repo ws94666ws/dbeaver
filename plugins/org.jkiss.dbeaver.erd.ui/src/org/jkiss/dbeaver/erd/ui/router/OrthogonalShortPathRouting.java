@@ -16,7 +16,6 @@
  */
 package org.jkiss.dbeaver.erd.ui.router;
 
-
 import org.eclipse.draw2d.AbstractRouter;
 import org.eclipse.draw2d.Bendpoint;
 import org.eclipse.draw2d.Connection;
@@ -39,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 public class OrthogonalShortPathRouting extends AbstractRouter {
 
     private double indentation = 30.0;
@@ -47,12 +45,13 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
     private static final int LEFT = 0;
     private static final int UP = 90;
     private static final int DOWN = -90;
+    private static final int UNDEFINED = -360;
     private final Map<Connection, Object> constraintMap = new HashMap<>();
     private Map<IFigure, Rectangle> figuresToBounds;
     private Map<Connection, Path> connectionToPaths;
     private boolean isDirty;
     private ShortestPathRouter algorithm = new ShortestPathRouter();
-    //private OrthogonalShortRouter algorithm = new OrthogonalShortRouter();
+    // private OrthogonalShortRouter algorithm = new OrthogonalShortRouter();
     private final IFigure container;
     private final Set<Connection> staleConnections = new HashSet<>();
     private final LayoutListener listener = new LayoutTracker();
@@ -87,16 +86,12 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
         if (figuresToBounds.containsKey(child)) {
             return;
         }
-        
-        
-        
-        
+
         Rectangle bounds = child.getBounds().getCopy();
         algorithm.addObstacle(bounds);
         figuresToBounds.put(child, bounds);
-        
-        System.out.println(String.format("[v]:Child added ------>>>> \t\t[%s]",bounds));
-        
+
+        System.out.println(String.format("[v]:Child added ------>>>> \t\t[%s]", bounds));
 
         child.addFigureListener(figureListener);
         isDirty = true;
@@ -188,16 +183,13 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
             if (constraint == null) {
                 constraint = Collections.emptyList();
             }
-            
 
             Point start = conn.getSourceAnchor().getReferencePoint().getCopy();
             Point end = conn.getTargetAnchor().getReferencePoint().getCopy();
 
             container.translateToRelative(start);
             container.translateToRelative(end);
-            
-            
-            
+
             path.setStartPoint(start);
             path.setEndPoint(end);
 
@@ -281,9 +273,9 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
                 Path path = (Path) element;
                 connection = (Connection) path.data;
                 connection.revalidate();
-                
+
                 PointList points = path.getPoints().getCopy();
-                
+
                 Point ref1 = new PrecisionPoint(points.getPoint(1));
                 Point ref2 = new PrecisionPoint(points.getPoint(points.size() - 2));
                 connection.translateToAbsolute(ref1);
@@ -292,85 +284,85 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
                 Point end = connection.getTargetAnchor().getLocation(ref2).getCopy();
                 connection.translateToRelative(start);
                 connection.translateToRelative(end);
-                
-                
-                
-                
-               // points.setPoint(start, 0);
-               // points.setPoint(end, points.size() - 1);
+
                 IFigure srcOwner = connection.getSourceAnchor().getOwner();
                 Rectangle srcBounds = srcOwner.getBounds().getCopy();
-                VertexRectangle vrSource = new  VertexRectangle(srcBounds);
-                
+
+                VertexRectangle vrSource = new VertexRectangle(srcBounds);
+
                 IFigure targetOwner = connection.getTargetAnchor().getOwner();
                 Rectangle trgBounds = targetOwner.getBounds().getCopy();
-                VertexRectangle vrTarget= new  VertexRectangle(trgBounds);
+                VertexRectangle vrTarget = new VertexRectangle(trgBounds);
                 PointList modifiedPoints = new PointList();
-                
+
                 // check connection to ourselves
                 IFigure parentSrc = srcOwner.getParent().getParent();
                 IFigure parentTrg = targetOwner.getParent().getParent();
-                
-                
+
                 if (indentation != 0) {
                     // first
-                  //  modifiedPoints.addPoint(start);
-                    int directionSrcToTrg = 180 - getLRDirection(srcBounds, start);
-                    int directionTrgToSrc = getLRDirection(trgBounds, end);
-                    
-                    if(parentSrc.equals(parentTrg)) {
+                    // modifiedPoints.addPoint(start);
+                    int directionSrcToTrg = 180 - getDirection(srcBounds, trgBounds);
+                    int directionTrgToSrc = getDirection(trgBounds, srcBounds);
+
+                    if (parentSrc.equals(parentTrg)) {
                         // connection inside entity, to ourself
-                        directionSrcToTrg = -360;
+                        directionSrcToTrg = UNDEFINED;
                         directionTrgToSrc = 180;
                     }
-//                    //left to right
-                    if(directionSrcToTrg == -360) {
-                        System.out.println("TO OURSELF");
-                        start = vrSource.centerRight;
-                        end = vrTarget.centerRight;
-                        modifiedPoints.addPoint(start);
-                    }
-                    else if (directionSrcToTrg == LEFT) {
-                       System.out.println("LEFT TO RIGHT");
-                        start = vrSource.centerRight;
-                        end = vrTarget.centerLeft;
-                        modifiedPoints.addPoint(start);
-                        
-                       
+                    switch (directionSrcToTrg) {
 
-                    } else {
-                        System.out.println("RIGHT TO LEFT");
-                        start = vrSource.centerLeft;
-                        end = vrTarget.centerRight;
-                        modifiedPoints.addPoint(start);
+                        case UP:
+                            System.out.println("UP");
+                            start = vrSource.centerLeft;
+                            end = vrTarget.centerLeft;
+                            break;
+                        case DOWN:
+                            System.out.println("DOWN");
+                            start = vrSource.centerRight;
+                            end = vrTarget.centerRight;
+                            break;
+                        case LEFT:
+                            System.out.println("LEFT TO RIGHT");
+                            start = vrSource.centerRight;
+                            end = vrTarget.centerLeft;
+                            break;
+                        case RIGHT:
+                            System.out.println("RIGHT TO LEFT");
+                            start = vrSource.centerLeft;
+                            end = vrTarget.centerRight;
+                            break;
+                        case UNDEFINED:
+                            System.out.println("TO OURSELF");
+                            start = vrSource.centerRight;
+                            end = vrTarget.centerRight;
+                            break;
+                        default:
+                            start = vrSource.centerRight;
+                            end = vrTarget.centerRight;
+                            break;
                     }
-//                    else {
-//                        modifiedPoints.addPoint(start);
-//                        System.out.println("Start:1:" + start);
-//                        System.out.println("Start:2:" + vrSource.centerRight);
-//                        //points.setPoint(vrTarget.centerRight, points.size() - 1);
+//                    if (directionSrcToTrg == -360) {
+//                        System.out.println("TO OURSELF");
+//                        start = vrSource.centerRight;
+//                        end = vrTarget.centerRight;
+//                    } else if (directionSrcToTrg == UP) {
+//                        System.out.println("TO OURSELF");
+//                        start = vrSource.centerLeft;
+//                        end = vrTarget.centerLeft;
+//                    } else if (directionSrcToTrg == LEFT) {
+//                        System.out.println("LEFT TO RIGHT");
+//                        start = vrSource.centerRight;
+//                        end = vrTarget.centerLeft;
+//                    } else {
+//                        System.out.println("RIGHT TO LEFT");
+//                        start = vrSource.centerLeft;
+//                        end = vrTarget.centerRight;
 //                    }
-//                    if (srcOwner instanceof EntityFigure) {
-//                        Rectangle bounds = ((EntityFigure) srcOwner).getBounds().getCopy();
-//                        directionSrcToTrg = 180 - getDirection(bounds, points.getPoint(0).getCopy());
-//                    }
-                    
-//                    if (targetOwner instanceof EntityFigure) {
-//                        Rectangle bounds = ((EntityFigure) targetOwner).getBounds().getCopy();
-//                        directionTrgtoSrc = getDirection(bounds, points.getPoint(points.size() - 1).getCopy());
-//                    }
-                  
-//                    
-//                    if(directionSrcToTrg == RIGHT) {
-//                      
-//                        System.out.println("Right:" + vr.centerRight);
-//                    }
-//                    if(directionSrcToTrg == LEFT) {
-//                        System.out.println("Src:" + srcOwner);
-//                        System.out.println("Trg:" + targetOwner);
-//                        System.out.println("Left:" + vr.centerLeft);
-//                    }
-                    
+
+                    // start point
+                    modifiedPoints.addPoint(start);
+
                     // from 1-->>2
                     int dx1 = (int) (Math.cos(Math.toRadians(directionSrcToTrg)) * indentation);
                     int dy1 = (int) (Math.sin(Math.toRadians(directionSrcToTrg)) * indentation);
@@ -389,38 +381,30 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
                     // end
                     modifiedPoints.addPoint(end);
                     connection.setPoints(modifiedPoints);
+
                 } else {
-                    
-                  
 
                     int direction = 180 - getLRDirection(srcBounds, start);
-                    if(parentSrc.equals(parentTrg)) {
-                        // connection inside entity, to ourself
-                        direction = -360;
-                        
+                    if (parentSrc.equals(parentTrg)) {
+                        direction = UNDEFINED;
+
                     }
-                    
-//                    int dx = (int) (Math.cos(Math.toRadians(direction)) * 1);
-//                    int dy = (int) (Math.sin(Math.toRadians(direction)) * 1);
-//                    Point lastPoint = new Point(end.x + dx, end.y + dy);
-                    if(direction == -360) {
+                    if (direction == -360) {
                         System.out.println("TO OURSELF");
                         start = vrSource.centerRight;
                         end = vrTarget.centerRight;
-                    }
-                    else if (direction == LEFT) {
+                    } else if (direction == LEFT) {
                         System.out.println("LEFT TO RIGHT");
-                         start = vrSource.centerRight;
-                         end = vrTarget.centerLeft;
-                         
+                        start = vrSource.centerRight;
+                        end = vrTarget.centerLeft;
 
-                     } else {
-                         System.out.println("RIGHT TO LEFT");
-                         start = vrSource.centerLeft;
-                         end = vrTarget.centerRight;
-                         
-                     }
-                    
+                    } else {
+                        System.out.println("RIGHT TO LEFT");
+                        start = vrSource.centerLeft;
+                        end = vrTarget.centerRight;
+
+                    }
+
                     modifiedPoints.addPoint(start);
                     // add other middle points
                     for (int i = 1; i < points.size() - 1; i++) {
@@ -436,7 +420,7 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
             ignoreInvalidate = false;
         }
     }
-    
+
     protected int getLRDirection(Rectangle r, Point p) {
         int i = 0;
         int direction = LEFT;
@@ -473,6 +457,45 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
             direction = DOWN;
         }
         i = Math.abs(r.right() - p.x);
+        if (i < distance) {
+            direction = RIGHT;
+        }
+        return direction;
+    }
+
+    protected int getDirection(Rectangle r1, Rectangle r2) {
+        int i = 0;
+        int direction = LEFT;
+        int distance = Math.abs(r1.x - r2.x);
+        i = Math.abs(r1.y - r2.y);
+
+        // 1
+        if (r1.getBottomLeft().y < r2.y &&
+            r1.getBottomRight().x <= r2.x) { // delta ?
+            direction = DOWN;
+        }
+        if (r2.getBottomLeft().y < r1.y &&
+            r2.getBottomRight().x <= r1.x) { // delta ?
+            direction = UP;
+        }
+        if (r1.getBottomRight().x < r2.y &&
+            r1.getBottomRight().x +10<= r2.x) { // delta ?
+            direction = DOWN;
+        }
+
+        
+        
+//        
+//        if (i <= distance) {
+//            distance = i;
+//            direction = UP;
+//        }
+//        i = Math.abs(r1.bottom() - r2.y);
+//        if (i <= distance) {
+//            distance = i;
+//            direction = DOWN;
+//        }
+        i = Math.abs(r1.right() - r2.x);
         if (i < distance) {
             direction = RIGHT;
         }
