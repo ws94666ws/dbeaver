@@ -52,8 +52,7 @@ public class EntityFigure extends Figure {
     private EditableLabel nameLabel;
     private Label descLabel;
 
-    public EntityFigure(EntityPart part)
-    {
+    public EntityFigure(EntityPart part) {
         this.part = part;
 
         ERDEntity entity = part.getEntity();
@@ -65,16 +64,14 @@ public class EntityFigure extends Figure {
         keyFigure = new AttributeListFigure(entity, true);
         attributeFigure = new AttributeListFigure(entity, false);
 
-        String entityName = useFQN ?
-            DBUtils.getObjectFullName(entity.getObject(), DBPEvaluationContext.DDL) :
-            entity.getObject().getName();
+        String entityName = useFQN ? DBUtils.getObjectFullName(entity.getObject(), DBPEvaluationContext.DDL) : entity.getObject().getName();
         if (!CommonUtils.isEmpty(entity.getAlias())) {
             entityName += " " + entity.getAlias();
         }
         nameLabel = new EditableLabel(entityName) {
             @Override
             public IFigure getToolTip() {
-                return null;//createToolTip();
+                return null;// createToolTip();
             }
         };
         nameLabel.setIcon(tableImage);
@@ -85,23 +82,21 @@ public class EntityFigure extends Figure {
             descLabel = new Label(entity.getObject().getDescription());
         }
 
-/*
-        GridLayout layout = new GridLayout(1, false);
-        layout.verticalSpacing = 0;
-        layout.marginHeight = 0;
-        layout.marginWidth = 0;
-*/
+        /*
+         * GridLayout layout = new GridLayout(1, false); layout.verticalSpacing = 0;
+         * layout.marginHeight = 0; layout.marginWidth = 0;
+         */
 
         GridLayout layout = new GridLayout(1, false);
         layout.marginHeight = 0;
         layout.marginWidth = 0;
         layout.verticalSpacing = 0;
         layout.horizontalSpacing = 0;
-        //layout.setHorizontal(false);
-        //layout.setStretchMinorAxis(true);
+        // layout.setHorizontal(false);
+        // layout.setStretchMinorAxis(true);
         setLayoutManager(layout);
 
-        LineBorder border = new LineBorder(getBorderColor(), ERDUIConstants.DEFAULT_ENTITY_BORDER_WIDTH);
+        LineBorder border = new LineBorder(getBorderColor(), 0);
 
         setBorder(border);
         setOpaque(true);
@@ -123,7 +118,7 @@ public class EntityFigure extends Figure {
 
         Figure toolTip = new Figure();
         toolTip.setOpaque(true);
-        //toolTip.setPreferredSize(300, 200);
+        // toolTip.setPreferredSize(300, 200);
         toolTip.setBorder(getBorder());
         toolTip.setLayoutManager(new GridLayout(1, false));
 
@@ -145,7 +140,8 @@ public class EntityFigure extends Figure {
 
     protected Color getBorderColor() {
         int dsIndex = getPart().getDiagram().getDataSourceIndex(part.getEntity().getDataSource().getContainer());
-        boolean changeBorderColors = ERDUIActivator.getDefault().getPreferenceStore().getBoolean(ERDUIConstants.PREF_DIAGRAM_CHANGE_BORDER_COLORS);
+        boolean changeBorderColors = ERDUIActivator.getDefault().getPreferenceStore()
+            .getBoolean(ERDUIConstants.PREF_DIAGRAM_CHANGE_BORDER_COLORS);
         if (dsIndex == 0 || !changeBorderColors) {
             return UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_LINES_FOREGROUND);
         }
@@ -165,7 +161,8 @@ public class EntityFigure extends Figure {
         } else if (part.getEntity().getObject().getEntityType() == DBSEntityType.ASSOCIATION) {
             setBackgroundColor(colorRegistry.get(ERDUIConstants.COLOR_ERD_ENTITY_ASSOCIATION_BACKGROUND));
         } else {
-            boolean changeHeaderColors = ERDUIActivator.getDefault().getPreferenceStore().getBoolean(ERDUIConstants.PREF_DIAGRAM_CHANGE_HEADER_COLORS);
+            boolean changeHeaderColors = ERDUIActivator.getDefault().getPreferenceStore()
+                .getBoolean(ERDUIConstants.PREF_DIAGRAM_CHANGE_HEADER_COLORS);
             if (changeHeaderColors) {
                 changeHeaderColor(colorRegistry);
             } else {
@@ -193,10 +190,9 @@ public class EntityFigure extends Figure {
         }
     }
 
-
     private void updateTitleForegroundColor() {
         Color bgColor = getBackgroundColor();
-        
+
         if (bgColor == null) {
             nameLabel.setForegroundColor(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_ENTITY_NAME_FOREGROUND));
             if (descLabel != null) {
@@ -211,14 +207,24 @@ public class EntityFigure extends Figure {
 
     }
 
+    protected void paintFigure(Graphics graphics) {
+         
+            ColorRegistry colorRegistry = UIUtils.getColorRegistry();
+            graphics.setBackgroundColor(colorRegistry.get(ERDUIConstants.COLOR_ERD_ATTR_FOREGROUND));
+            graphics.setForegroundColor(colorRegistry.get(ERDUIConstants.COLOR_ERD_ATTR_FOREGROUND));
+            graphics.drawRectangle(getBounds());
+       
+//        if (getBorder() instanceof AbstractBackground)
+//            ((AbstractBackground) getBorder()).paintBackground(this, graphics, NO_INSETS);
+    }
+
     @Override
     public void setBackgroundColor(Color bg) {
         super.setBackgroundColor(bg);
         updateTitleForegroundColor();
     }
 
-    public void setSelected(boolean isSelected)
-    {
+    public void setSelected(boolean isSelected) {
         LineBorder lineBorder = (LineBorder) getBorder();
         if (isSelected) {
             lineBorder.setWidth(3);
@@ -227,12 +233,10 @@ public class EntityFigure extends Figure {
         }
     }
 
-
     /**
      * @return returns the label used to edit the name
      */
-    public EditableLabel getNameLabel()
-    {
+    public EditableLabel getNameLabel() {
         return nameLabel;
     }
 
@@ -243,8 +247,7 @@ public class EntityFigure extends Figure {
     /**
      * @return the figure containing the column labels
      */
-    public AttributeListFigure getColumnsFigure()
-    {
+    public AttributeListFigure getColumnsFigure() {
         return attributeFigure;
     }
 
@@ -264,7 +267,8 @@ public class EntityFigure extends Figure {
                 keyFigure.add(figure, new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING, GridData.VERTICAL_ALIGN_BEGINNING, true, false));
                 keyFigure.add(attrExtra, new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING));
             } else {
-                attributeFigure.add(figure, new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING, GridData.VERTICAL_ALIGN_BEGINNING, true, false));
+                attributeFigure.add(figure,
+                    new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING, GridData.VERTICAL_ALIGN_BEGINNING, true, false));
                 attributeFigure.add(attrExtra, new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING));
             }
 
@@ -275,7 +279,7 @@ public class EntityFigure extends Figure {
 
     protected IFigure createRightPanel() {
         EditableLabel label = new EditableLabel("");
-        //attrExtra.setBorder(new LineBorder(1));
+        // attrExtra.setBorder(new LineBorder(1));
         label.setTextAlignment(PositionConstants.RIGHT);
         return label;
     }
@@ -307,11 +311,11 @@ public class EntityFigure extends Figure {
             super.remove(figure);
         }
     }
-    
+
     @Override
     public String toString() {
         ERDEntity entity = part.getEntity();
         String objectFullName = DBUtils.getObjectFullName(entity.getObject(), DBPEvaluationContext.DDL);
-        return "Entity:[" + objectFullName + "] bounds:[" + this.getBounds().toString()+"]";
+        return "Entity:[" + objectFullName + "] bounds:[" + this.getBounds().toString() + "]";
     }
 }

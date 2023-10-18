@@ -42,12 +42,11 @@ public class AttributeListFigure extends Figure {
         layout.verticalSpacing = 3;
         layout.marginHeight = 3;
         layout.marginWidth = 3;
-/*
-        FlowLayout layout = new FlowLayout(false);
-		layout.setMinorAlignment(FlowLayout.ALIGN_TOPLEFT);
-		layout.setStretchMinorAxis(true);
-		layout.setMinorSpacing(2);
-*/
+        /*
+         * FlowLayout layout = new FlowLayout(false);
+         * layout.setMinorAlignment(FlowLayout.ALIGN_TOPLEFT);
+         * layout.setStretchMinorAxis(true); layout.setMinorSpacing(2);
+         */
         setLayoutManager(layout);
         setBorder(new ColumnFigureBorder());
         ColorRegistry colorRegistry = UIUtils.getColorRegistry();
@@ -56,6 +55,17 @@ public class AttributeListFigure extends Figure {
 
         setOpaque(true);
     }
+
+    protected void paintFigure(Graphics graphics) {
+        
+        ColorRegistry colorRegistry = UIUtils.getColorRegistry();
+        graphics.setBackgroundColor(colorRegistry.get(ERDUIConstants.COLOR_ERD_ATTR_FOREGROUND));
+        graphics.setForegroundColor(colorRegistry.get(ERDUIConstants.COLOR_ERD_ATTR_FOREGROUND));
+        graphics.drawRectangle(getBounds());
+   
+//    if (getBorder() instanceof AbstractBackground)
+//        ((AbstractBackground) getBorder()).paintBackground(this, graphics, NO_INSETS);
+}
 
     public List<AttributeItemFigure> getAttributes() {
         List<AttributeItemFigure> result = new ArrayList<>();
@@ -78,7 +88,7 @@ public class AttributeListFigure extends Figure {
         public void paint(IFigure figure, Graphics graphics, Insets insets) {
             graphics.setForegroundColor(((EntityFigure) getParent()).getBorderColor());
             Rectangle rect = getPaintRectangle(figure, insets);
-            graphics.setLineWidth(2);
+            graphics.setLineWidth(1);
             graphics.drawLine(rect.getTopLeft(), tempRect.getTopRight());
         }
     }
