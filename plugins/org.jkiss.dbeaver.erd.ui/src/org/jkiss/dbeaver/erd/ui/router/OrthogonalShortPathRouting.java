@@ -16,6 +16,15 @@
  */
 package org.jkiss.dbeaver.erd.ui.router;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.draw2d.AbstractRouter;
 import org.eclipse.draw2d.Bendpoint;
 import org.eclipse.draw2d.Connection;
@@ -25,18 +34,10 @@ import org.eclipse.draw2d.LayoutListener;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.PointList;
 import org.eclipse.draw2d.geometry.PrecisionPoint;
+import org.eclipse.draw2d.geometry.Ray;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.draw2d.graph.Path;
 import org.eclipse.draw2d.graph.ShortestPathRouter;
-import org.jkiss.dbeaver.erd.ui.figures.EntityFigure;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class OrthogonalShortPathRouting extends AbstractRouter {
 
@@ -55,6 +56,14 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
     private final IFigure container;
     private final Set<Connection> staleConnections = new HashSet<>();
     private final LayoutListener listener = new LayoutTracker();
+    private Map reservedInfo = new HashMap();
+    private Map rowsUsed = new HashMap();
+    private Map colsUsed = new HashMap();
+
+    private class ReservedInfo {
+        public List reservedRows = new ArrayList(2);
+        public List reservedCols = new ArrayList(2);
+    }
 
     private final FigureListener figureListener = source -> {
         Rectangle newBounds = source.getBounds().getCopy();
@@ -305,9 +314,9 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
                     // direction1 = 180 - getDirection(bounds, points.getPoint(0).getCopy())
                     int direction2 = getDirection2(srcBounds, trgBounds);
                     int direction = getLRDirection(srcBounds, trgBounds.getTopLeft());
-                    
-                     int directionSrcToTrg = 0;
-                     int directionTrgToSrc = 0;
+
+                    int directionSrcToTrg = 0;
+                    int directionTrgToSrc = 0;
 
                     if (parentSrc.equals(parentTrg)) {
                         // connection inside entity, to ourself
@@ -320,7 +329,7 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
                             System.out.println("UP: " + directionSrcToTrg);
                             directionSrcToTrg = RIGHT;
                             directionTrgToSrc = RIGHT;
-                            
+
                             start = vrSource.centerRight;
                             end = vrTarget.centerRight;
 
@@ -361,7 +370,6 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
                             end = vrTarget.centerRight;
                             break;
                     }
- 
 
                     // start point
                     modifiedPoints.addPoint(start);
@@ -374,17 +382,36 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
                     int dy2 = (int) (Math.sin(Math.toRadians(directionTrgToSrc)) * indentation);
                     Point p1 = new Point(start.x + dx1, start.y - dy1);
                     modifiedPoints.addPoint(p1);
-                    // add other middle points
+
+                    // !!! WAS
+                    // add other middle points [1; size()-1]
+                    
                     for (int i = 1; i < points.size() - 1; i++) {
                         modifiedPoints.addPoint(points.getPoint(i));
                     }
+
+                    // !!!
                     // before end
                     Point p2 = new Point(end.x - dx2, end.y - dy2);
                     modifiedPoints.addPoint(p2);
                     // end
                     modifiedPoints.addPoint(end);
-                    connection.setPoints(modifiedPoints);
 
+                    // PointList stripRedundantCornerPoints =
+                    // RectilinearRouter.stripRedundantCornerPoints(modifiedPoints);
+                    PointList intermediate = new PointList();
+                    
+                    for (int i = 1; i < modifiedPoints.size() - 1; i++) {
+                        intermediate.addPoint(modifiedPoints.getPoint(i));
+                    }
+                    PointList orthoPoints = RectilinearRouter.addSidePoints(intermediate);
+                    PointList result = new PointList();
+                    
+                    result.addPoint(start);
+                    result.addAll(orthoPoints);
+                    result.addPoint(end);
+                    connection.setPoints(result);
+                    // connection.setPoints(conn.getPoints());
                 } else {
 
                     int direction = 180 - getLRDirection(srcBounds, start);
@@ -439,11 +466,11 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
     }
 
     protected int getDirection(Rectangle r, Point p) {
-        
+
         int direction = LEFT;
         int dX = Math.abs(r.x - p.x);
         int dY = Math.abs(r.y - p.y);
-        
+
         if (dY <= dX) {
             dX = dY;
             direction = UP;
@@ -461,7 +488,7 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
     }
 
     protected int getDirection(Rectangle r1, Rectangle r2) {
-        
+
         int direction = LEFT;
         int dX = Math.abs(r1.x - r2.x);
         int dY = Math.abs(r1.y - r2.y);
@@ -485,21 +512,21 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
         int direction = LEFT;
         int dX = Math.abs(r1.x - r2.x);
         int dY = Math.abs(r1.y - r2.y);
-        
-        if(r1.y > r2.bottom() ) {
+
+        if (r1.y > r2.bottom()) {
             // r1 down of r2
             if (r1.right() > r2.x &&
                 r1.right() < r2.right()) {
                 direction = UP;
             }
-        }else {
+        } else {
             // r2 down of r1
             if (r2.x < r1.right() &&
                 r2.x > r1.x) {
                 direction = DOWN;
             }
         }
-        
+
 //        if (dY <= dX) {
 //            dX = dY;
 //            if (r1.right() > r2.x &&
@@ -629,6 +656,170 @@ public class OrthogonalShortPathRouting extends AbstractRouter {
      */
     public void setIndentation(double indentation) {
         this.indentation = indentation;
+    }
+
+    // !!!
+    protected void processPositions(Point start, Point end, PointList positions, boolean horizontal, Connection conn) {
+        PointList points = new PointList();
+
+        conn.setPoints(points);
+    }
+
+    protected void processPositions(Ray start, Ray end, PointList positions, boolean horizontal, Connection conn) {
+        removeReservedLines(conn);
+
+        int[] intArray = positions.toIntArray();
+        int pos[] = new int[intArray.length + 2];
+        if (horizontal)
+            pos[0] = start.x;
+        else
+            pos[0] = start.y;
+        int i;
+        for (i = 0; i < intArray.length; i++) {
+            pos[i + 1] = intArray[i];
+        }
+        if (horizontal == (positions.size() % 2 == 1))
+            pos[++i] = end.x;
+        else
+            pos[++i] = end.y;
+
+        PointList points = new PointList();
+        points.addPoint(new Point(start.x, start.y));
+        Point p;
+        int current, prev, min, max;
+        boolean adjust;
+        for (i = 2; i < pos.length - 1; i++) {
+            horizontal = !horizontal;
+            prev = pos[i - 1];
+            current = pos[i];
+
+            adjust = (i != pos.length - 2);
+            if (horizontal) {
+                if (adjust) {
+                    min = pos[i - 2];
+                    max = pos[i + 2];
+                    pos[i] = current = getRowNear(conn, current, min, max);
+                }
+                p = new Point(prev, current);
+            } else {
+                if (adjust) {
+                    min = pos[i - 2];
+                    max = pos[i + 2];
+                    pos[i] = current = getColumnNear(conn, current, min, max);
+                }
+                p = new Point(current, prev);
+            }
+            points.addPoint(p);
+        }
+        points.addPoint(new Point(end.x, end.y));
+        conn.setPoints(points);
+    }
+
+    protected void removeReservedLines(Connection connection) {
+        ReservedInfo rInfo = (ReservedInfo) reservedInfo.get(connection);
+        if (rInfo == null)
+            return;
+
+        for (int i = 0; i < rInfo.reservedRows.size(); i++) {
+            rowsUsed.remove(rInfo.reservedRows.get(i));
+        }
+        for (int i = 0; i < rInfo.reservedCols.size(); i++) {
+            colsUsed.remove(rInfo.reservedCols.get(i));
+        }
+        reservedInfo.remove(connection);
+    }
+
+    protected int getRowNear(Connection connection, int r, int n, int x) {
+        int min = Math.min(n, x), max = Math.max(n, x);
+        if (min > r) {
+            max = min;
+            min = r - (min - r);
+        }
+        if (max < r) {
+            min = max;
+            max = r + (r - max);
+        }
+
+        int proximity = 0;
+        int direction = -1;
+        if (r % 2 == 1)
+            r--;
+        Integer i;
+        while (proximity < r) {
+            i = Integer.valueOf(r + proximity * direction);
+            if (!rowsUsed.containsKey(i)) {
+                rowsUsed.put(i, i);
+                reserveRow(connection, i);
+                return i.intValue();
+            }
+            int j = i.intValue();
+            if (j <= min)
+                return j + 2;
+            if (j >= max)
+                return j - 2;
+            if (direction == 1)
+                direction = -1;
+            else {
+                direction = 1;
+                proximity += 2;
+            }
+        }
+        return r;
+    }
+
+    private int getColumnNear(Connection connection, int r, int n, int x) {
+        int min = Math.min(n, x), max = Math.max(n, x);
+        if (min > r) {
+            max = min;
+            min = r - (min - r);
+        }
+        if (max < r) {
+            min = max;
+            max = r + (r - max);
+        }
+        int proximity = 0;
+        int direction = -1;
+        if (r % 2 == 1)
+            r--;
+        Integer i;
+        while (proximity < r) {
+            i = Integer.valueOf(r + proximity * direction);
+            if (!colsUsed.containsKey(i)) {
+                colsUsed.put(i, i);
+                reserveColumn(connection, i);
+                return i.intValue();
+            }
+            int j = i.intValue();
+            if (j <= min)
+                return j + 2;
+            if (j >= max)
+                return j - 2;
+            if (direction == 1)
+                direction = -1;
+            else {
+                direction = 1;
+                proximity += 2;
+            }
+        }
+        return r;
+    }
+
+    protected void reserveRow(Connection connection, Integer row) {
+        ReservedInfo info = (ReservedInfo) reservedInfo.get(connection);
+        if (info == null) {
+            info = new ReservedInfo();
+            reservedInfo.put(connection, info);
+        }
+        info.reservedRows.add(row);
+    }
+
+    protected void reserveColumn(Connection connection, Integer column) {
+        ReservedInfo info = (ReservedInfo) reservedInfo.get(connection);
+        if (info == null) {
+            info = new ReservedInfo();
+            reservedInfo.put(connection, info);
+        }
+        info.reservedCols.add(column);
     }
 
 }

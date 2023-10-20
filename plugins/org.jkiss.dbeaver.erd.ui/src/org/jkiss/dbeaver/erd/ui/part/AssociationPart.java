@@ -105,7 +105,7 @@ public class AssociationPart extends PropertyAwareConnectionPart {
     @Override
     protected IFigure createFigure() {
        // PolylineConnection conn = new PolylineConnection();
-        ERDiagramConnection conn = new ERDiagramConnection(true);
+        ERDiagramConnection conn = new ERDiagramConnection(false);
         conn.setForegroundColor(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_LINES_FOREGROUND));
 
         boolean showComments = getDiagramPart().getDiagram().hasAttributeStyle(ERDViewStyle.COMMENTS);

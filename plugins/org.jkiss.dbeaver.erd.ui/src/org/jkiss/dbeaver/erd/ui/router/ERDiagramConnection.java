@@ -53,26 +53,27 @@ public class ERDiagramConnection extends PolylineConnection {
         }
 
         // final PointList points = getBezierPoints();
+//        g.setForegroundColor(ColorConstants.blue);
         final PointList points = getOrthoPoints();
-
-        // 1
-        g.setBackgroundColor(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_LINES_FOREGROUND));
+      
+       
+        //g.setBackgroundColor(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_LINES_FOREGROUND));
 //       g.setBackgroundColor(ColorConstants.darkBlue);
 //       Point firstPoint = points.getPoint(1);
 //       g.fillOval(firstPoint.x-2, firstPoint.y-2, 4, 4);
 
-        Point lastPoint = points.getPoint(points.size() - 2);
-        //g.fillOval(lastPoint.x - 3, lastPoint.y - 3, 6, 6);
-        
-        final PointList triangle = new PointList();
-        triangle.addPoint(lastPoint.x+8 , lastPoint.y-1 );
-        triangle.addPoint(lastPoint.x-3, lastPoint.y+5 );
-        triangle.addPoint(lastPoint.x-3, lastPoint.y-5 );
-        triangle.addPoint(lastPoint.x+8 , lastPoint.y );
-        g.fillPolygon(triangle);
-        
-        //g.fillRectangle(lastPoint.x - 2, lastPoint.y - 2, 4, 4);
-        
+        // Point lastPoint = points.getPoint(points.size() - 2);
+        // g.fillOval(lastPoint.x - 3, lastPoint.y - 3, 6, 6);
+
+//        final PointList triangle = new PointList();
+//        triangle.addPoint(lastPoint.x+8 , lastPoint.y-1 );
+//        triangle.addPoint(lastPoint.x-3, lastPoint.y+5 );
+//        triangle.addPoint(lastPoint.x-3, lastPoint.y-5 );
+//        triangle.addPoint(lastPoint.x+8 , lastPoint.y );
+//        g.fillPolygon(triangle);
+
+        // g.fillRectangle(lastPoint.x - 2, lastPoint.y - 2, 4, 4);
+
         int width = g.getLineWidth();
 
         Color color = g.getForegroundColor();
@@ -112,11 +113,25 @@ public class ERDiagramConnection extends PolylineConnection {
 
             width -= 2;
         }
+        // 1
+        g.setForegroundColor(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_LINES_FOREGROUND));
+        g.setBackgroundColor(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_LINES_FOREGROUND));
+        for (int i = 0; i < points.size() - 1; i++) {
+            g.fillOval(points.getPoint(i).x - 2, points.getPoint(i).y - 2, 4, 4);
+        }
+        
+        g.setBackgroundColor(ColorConstants.lightGray);
+        g.fillOval(points.getMidpoint().x - 5, points.getMidpoint().y - 5, 10, 10);
+      //  g.setForegroundColor(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_LINES_FOREGROUND));
+        g.setBackgroundColor(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_LINES_FOREGROUND));
+        g.drawOval(points.getMidpoint().x - 5, points.getMidpoint().y - 5, 10, 10);
+        g.setForegroundColor(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_LINES_FOREGROUND));
+        g.setBackgroundColor(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_LINES_FOREGROUND));
     }
 
     private PointList getOrthoPoints() {
-        final PointList controlPoints = getPoints();
-        return controlPoints;
+        return getPoints();
+        
     }
 
     public PointList getBezierPoints() {

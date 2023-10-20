@@ -45,6 +45,7 @@ import org.jkiss.dbeaver.erd.ui.policy.DiagramContainerEditPolicy;
 import org.jkiss.dbeaver.erd.ui.router.EnhancedManhattanConnectionRouter;
 import org.jkiss.dbeaver.erd.ui.router.MikamiTabuchiConnectionRouter;
 import org.jkiss.dbeaver.erd.ui.router.OrthogonalShortPathRouting;
+import org.jkiss.dbeaver.erd.ui.router.RectilinearRouter;
 import org.jkiss.dbeaver.model.preferences.DBPPreferenceStore;
 import org.jkiss.dbeaver.ui.UIUtils;
 import org.jkiss.utils.CommonUtils;
@@ -142,8 +143,9 @@ public class DiagramPart extends PropertyAwarePart {
         if (store.getString(ERDUIConstants.PREF_ROUTING_TYPE).equals(ERDUIConstants.ROUTING_MIKAMI)) {
             router = new MikamiTabuchiConnectionRouter(figure);
         } else {
-            //router = new OrthogonalShortPathRouting(figure);
-            router = new EnhancedManhattanConnectionRouter();
+             router = new OrthogonalShortPathRouting(figure);
+            //router = new EnhancedManhattanConnectionRouter();
+           // router = new RectilinearRouter(figure);
      
             
             
