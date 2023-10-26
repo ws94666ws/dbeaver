@@ -1,3 +1,19 @@
+/*
+ * DBeaver - Universal Database Manager
+ * Copyright (C) 2010-2023 DBeaver Corp and others
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jkiss.dbeaver.erd.ui.router;
 
 import org.eclipse.draw2d.PositionConstants;
@@ -28,7 +44,6 @@ public class VertexRectangle extends Rectangle {
         init(rect);
     }
 
-   
     public boolean containsProper(Point p) {
         return p.x > this.x && p.x < this.x + this.width - 1 && p.y > this.y && p.y < this.y + this.height - 1;
     }
@@ -38,7 +53,7 @@ public class VertexRectangle extends Rectangle {
 //     }
 
     private void growVertex(VertexPoint vertex) {
-        if (vertex.totalCount > 0)
+        if (vertex.getTotalCount() > 0)
             vertex.grow();
     }
 
@@ -66,24 +81,24 @@ public class VertexRectangle extends Rectangle {
         exclude = false;
 
         topLeft = new VertexPoint(x, y, this);
-        topLeft.positionOnObstacle = PositionConstants.NORTH_WEST;
-        
+        topLeft.setPositionOnObstacle(PositionConstants.NORTH_WEST);
+
         topRight = new VertexPoint(x + width - 1, y, this);
-        topRight.positionOnObstacle = PositionConstants.NORTH_EAST;
-        
+        topRight.setPositionOnObstacle(PositionConstants.NORTH_EAST);
+
         bottomLeft = new VertexPoint(x, y + height - 1, this);
-        bottomLeft.positionOnObstacle = PositionConstants.SOUTH_WEST;
-        
+        bottomLeft.setPositionOnObstacle(PositionConstants.SOUTH_WEST);
+
         bottomRight = new VertexPoint(x + width - 1, y + height - 1, this);
-        bottomRight.positionOnObstacle = PositionConstants.SOUTH_EAST;
-        
+        bottomRight.setPositionOnObstacle(PositionConstants.SOUTH_EAST);
+
         center = new VertexPoint(getCenter(), this);
-        
-        centerLeft = new VertexPoint(x, y + height/2 - 1, this);
-        centerLeft.positionOnObstacle = PositionConstants.WEST;
-        
-        centerRight = new VertexPoint(x + width - 1, y + height/2 - 1, this);
-        centerRight.positionOnObstacle = PositionConstants.EAST;
+
+        centerLeft = new VertexPoint(x, y + height / 2 - 1, this);
+        centerLeft.setPositionOnObstacle(PositionConstants.WEST);
+
+        centerRight = new VertexPoint(x + width - 1, y + height / 2 - 1, this);
+        centerRight.setPositionOnObstacle(PositionConstants.EAST);
     }
 
     /**
@@ -97,7 +112,7 @@ public class VertexRectangle extends Rectangle {
     }
 
     private void shrinkVertex(VertexPoint vertex) {
-        if (vertex.totalCount > 0)
+        if (vertex.getTotalCount() > 0)
             vertex.shrink();
     }
 

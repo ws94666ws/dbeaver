@@ -1,3 +1,19 @@
+/*
+ * DBeaver - Universal Database Manager
+ * Copyright (C) 2010-2023 DBeaver Corp and others
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jkiss.dbeaver.erd.ui.router;
 
 import java.util.ArrayList;
@@ -16,7 +32,12 @@ public class OrthoPath {
     /**
      * A Stack of segments.
      */
-    private static class SegmentStack extends ArrayList {
+    private static class SegmentStack extends ArrayList<Object> {
+
+        /**
+         * Default UID
+         */
+        private static final long serialVersionUID = 1L;
 
         VertexSegment pop() {
             return (VertexSegment) remove(size() - 1);
@@ -46,8 +67,8 @@ public class OrthoPath {
      * object.
      */
     public Object data;
-    List excludedVertexRectangles;
-    List grownSegments;
+    private List excludedVertexRectangles;
+    private List grownSegments;
     /**
      * this field is for internal use only. It is true whenever a property has been
      * changed which requires the solver to resolve this path.
@@ -63,14 +84,14 @@ public class OrthoPath {
      * divided by the length from the start to the end.
      */
     private double prevCostRatio;
-    List segments;
+    private List<VertexSegment> segments;
 
     private SegmentStack stack;
-    VertexPoint start, end;
+    private VertexPoint start, end;
     private OrthoPath subPath;
-    double threshold;
-    Set visibleVertexRectangles;
-    Set visibleVertices;
+    private double threshold;
+    private Set<Object> visibleVertexRectangles;
+    private Set<Object> visibleVertices;
 
     /**
      * Constructs a new path.
@@ -78,13 +99,13 @@ public class OrthoPath {
      * @since 3.0
      */
     public OrthoPath() {
-        segments = new ArrayList();
-        grownSegments = new ArrayList();
+        segments = new ArrayList<>();
+        grownSegments = new ArrayList<>();
         points = new PointList();
-        visibleVertices = new HashSet();
+        visibleVertices = new HashSet<>();
         stack = new SegmentStack();
-        visibleVertexRectangles = new HashSet();
-        excludedVertexRectangles = new ArrayList();
+        visibleVertexRectangles = new HashSet<>();
+        excludedVertexRectangles = new ArrayList<>();
     }
 
     /**
@@ -471,18 +492,18 @@ public class OrthoPath {
      * @return true if a path can be found.
      */
     private boolean determineShortestPath() {
-        if (!labelGraph())
-            return false;
+//        if (!labelGraph())
+//            return false;
         VertexPoint vertex = end;
-        prevCostRatio = end.cost / start.getDistance(end);
+        prevCostRatio = end.getCost() / start.getDistance(end);
 
         VertexPoint nextVertex;
         while (!vertex.equals(start)) {
-            nextVertex = vertex.label;
-            if (nextVertex == null)
+            nextVertex = vertex.getLabel();
+            if (nextVertex == null) {
                 return false;
-            VertexSegment s = new VertexSegment(nextVertex, vertex);
-            segments.add(s);
+            }
+            segments.add(new VertexSegment(nextVertex, vertex));
             vertex = nextVertex;
         }
 
@@ -590,10 +611,11 @@ public class OrthoPath {
         int stop = grownSegments.indexOf(currentSegment);
         for (int i = 0; i < stop; i++) {
             VertexPoint vertex = ((VertexSegment) grownSegments.get(i)).end;
-            if (vertex.type == VertexPoint.INNIE)
-                vertex.type = VertexPoint.OUTIE;
-            else
-                vertex.type = VertexPoint.INNIE;
+            if (vertex.getType() == VertexPoint.INNIE) {
+                vertex.setType(VertexPoint.OUTIE);
+            } else {
+                vertex.setType(VertexPoint.INNIE);
+            }
         }
     }
 
@@ -607,53 +629,53 @@ public class OrthoPath {
         return visibleVertexRectangles.contains(obs);
     }
 
-    /**
-     * Labels the visibility graph to assist in finding the shortest path
-     * 
-     * @return false if there was a gap in the visibility graph
-     */
-    private boolean labelGraph() {
-        int numPermanentNodes = 1;
-        VertexPoint vertex = start;
-        VertexPoint neighborVertex = null;
-        vertex.isPermanent = true;
-        double newCost;
-        while (numPermanentNodes != visibleVertices.size()) {
-            List neighbors = vertex.neighbors;
-            if (neighbors == null)
-                return false;
-            // label neighbors if they have a new shortest path
-            for (int i = 0; i < neighbors.size(); i++) {
-                neighborVertex = (VertexPoint) neighbors.get(i);
-                if (!neighborVertex.isPermanent) {
-                    newCost = vertex.cost + vertex.getDistance(neighborVertex);
-                    if (neighborVertex.label == null) {
-                        neighborVertex.label = vertex;
-                        neighborVertex.cost = newCost;
-                    } else if (neighborVertex.cost > newCost) {
-                        neighborVertex.label = vertex;
-                        neighborVertex.cost = newCost;
-                    }
-                }
-            }
-            // find the next none-permanent, labeled vertex with smallest cost
-            double smallestCost = 0;
-            VertexPoint tempVertex = null;
-            Iterator v = visibleVertices.iterator();
-            while (v.hasNext()) {
-                tempVertex = (VertexPoint) v.next();
-                if (!tempVertex.isPermanent && tempVertex.label != null
-                    && (tempVertex.cost < smallestCost || smallestCost == 0)) {
-                    smallestCost = tempVertex.cost;
-                    vertex = tempVertex;
-                }
-            }
-            // set the new vertex to permanent.
-            vertex.isPermanent = true;
-            numPermanentNodes++;
-        }
-        return true;
-    }
+//    /**
+//     * Labels the visibility graph to assist in finding the shortest path
+//     * 
+//     * @return false if there was a gap in the visibility graph
+//     */
+//    private boolean labelGraph() {
+//        int numPermanentNodes = 1;
+//        VertexPoint vertex = start;
+//        VertexPoint neighborVertex = null;
+//        vertex.setPermanent(true);
+//        double newCost;
+//        while (numPermanentNodes != visibleVertices.size()) {
+//            List neighbors = vertex.neighbors;
+//            if (neighbors == null)
+//                return false;
+//            // label neighbors if they have a new shortest path
+//            for (int i = 0; i < neighbors.size(); i++) {
+//                neighborVertex = (VertexPoint) neighbors.get(i);
+//                if (!neighborVertex.isPermanent()) {
+//                    newCost = vertex.getCost() + vertex.getDistance(neighborVertex);
+//                    if (neighborVertex.getLabel() == null) {
+//                        neighborVertex.setLabel(vertex);
+//                        neighborVertex.cost = newCost;
+//                    } else if (neighborVertex.getCost() > newCost) {
+//                        neighborVertex.setLabel(vertex);
+//                        neighborVertex.cost = newCost;
+//                    }
+//                }
+//            }
+//            // find the next none-permanent, labeled vertex with smallest cost
+//            double smallestCost = 0;
+//            VertexPoint tempVertex = null;
+//            Iterator v = visibleVertices.iterator();
+//            while (v.hasNext()) {
+//                tempVertex = (VertexPoint) v.next();
+//                if (!tempVertex.isPermanent() && tempVertex.getLabel() != null
+//                    && (tempVertex.getCost() < smallestCost || smallestCost == 0)) {
+//                    smallestCost = tempVertex.getCost();
+//                    vertex = tempVertex;
+//                }
+//            }
+//            // set the new vertex to permanent.
+//            vertex.setPermanent(true);
+//            numPermanentNodes++;
+//        }
+//        return true;
+//    }
 
     /**
      * Links two vertices together in the visibility graph
@@ -661,14 +683,16 @@ public class OrthoPath {
      * @param segment the segment to add
      */
     private void linkVertices(VertexSegment segment) {
-        if (segment.start.neighbors == null)
-            segment.start.neighbors = new ArrayList();
-        if (segment.end.neighbors == null)
-            segment.end.neighbors = new ArrayList();
+        if (segment.start.getNeighbors() == null) {
+            segment.start.setNeighbors(new ArrayList<Object>());
+        }
+        if (segment.end.getNeighbors() == null) {
+            segment.end.setNeighbors(new ArrayList<Object>());
+        }
 
-        if (!segment.start.neighbors.contains(segment.end)) {
-            segment.start.neighbors.add(segment.end);
-            segment.end.neighbors.add(segment.start);
+        if (!segment.start.getNeighbors().contains(segment.end)) {
+            segment.start.getNeighbors().add(segment.end);
+            segment.end.getNeighbors().add(segment.start);
         }
 
         visibleVertices.add(segment.start);
@@ -687,7 +711,7 @@ public class OrthoPath {
             VertexSegment oldSegment = (VertexSegment) grownSegments.get(grownSegments.size() - 1);
 
             oldSegment.end = changedSegment.end;
-            
+
             grownSegments.addAll(subPath.grownSegments);
 
             subPath.points.removePoint(0);
@@ -818,6 +842,63 @@ public class OrthoPath {
             }
         }
         return false;
+    }
+
+    public void setPoints(PointList resultPointList) {
+        points.removeAllPoints();
+        points.addAll(resultPointList);
+    }
+
+    public void setSegments(List<VertexSegment> recreatedSegments) {
+        this.segments = recreatedSegments;
+    }
+
+    public List<VertexSegment> getSegments() {
+        return segments;
+    }
+
+    public VertexPoint getStart() {
+        return start;
+    }
+
+    public VertexPoint getEnd() {
+        return end;
+    }
+
+    public List getGrownSegments() {
+        return grownSegments;
+    }
+
+    public List getExcludedVertexRectangles() {
+        return excludedVertexRectangles;
+    }
+
+    public void setExcludedVertexRectangles(List excludedVertexRectangles) {
+        this.excludedVertexRectangles = excludedVertexRectangles;
+    }
+
+    public double getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(double threshold) {
+        this.threshold = threshold;
+    }
+
+    public Set<Object> getVisibleVertexRectangles() {
+        return visibleVertexRectangles;
+    }
+
+    public void setVisibleVertexRectangles(Set<Object> visibleVertexRectangles) {
+        this.visibleVertexRectangles = visibleVertexRectangles;
+    }
+
+    public Set<Object> getVisibleVertices() {
+        return visibleVertices;
+    }
+
+    public void setVisibleVertices(Set<Object> visibleVertices) {
+        this.visibleVertices = visibleVertices;
     }
 
 }

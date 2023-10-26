@@ -114,7 +114,7 @@ public class AssociationPart extends PropertyAwareConnectionPart {
             if (association != null && association.getObject() != null && !CommonUtils.isEmpty(association.getObject().getDescription())) {
                 ConnectionLocator descLabelLocator = new ConnectionLocator(conn, ConnectionLocator.SOURCE);
                 //descLabelLocator.setRelativePosition(50);
-                //descLabelLocator.setGap(50);
+               // descLabelLocator.setGap(10);
                 Label descLabel = new Label(association.getObject().getDescription());
                 descLabel.setForegroundColor(UIUtils.getColorRegistry().get(ERDUIConstants.COLOR_ERD_ATTR_FOREGROUND));
 //                Border border = new MarginBorder(20, 0, 0, 0);

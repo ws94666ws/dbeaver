@@ -1,6 +1,21 @@
+/*
+ * DBeaver - Universal Database Manager
+ * Copyright (C) 2010-2023 DBeaver Corp and others
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.jkiss.dbeaver.erd.ui.router;
-
-
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,13 +29,14 @@ import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.PointList;
 import org.eclipse.draw2d.geometry.Rectangle;
 
-
 public class OrthogonalShortRouter {
 
     /**
      * A stack of Paths.
      */
-    static class PathStack extends ArrayList {
+    static class PathStack extends ArrayList<Object> {
+
+        private static final long serialVersionUID = 1L;
 
         OrthoPath pop() {
             return (OrthoPath) remove(size() - 1);
@@ -35,28 +51,28 @@ public class OrthogonalShortRouter {
      * The number of times to grow obstacles and test for intersections. This is a
      * tradeoff between performance and quality of output.
      */
-    private static final int NUM_GROW_PASSES = 2;
+    private static final int NUM_GROW_PASSES = 4;
 
-    private int spacing = 4;
+    private int spacing = 10;
     private boolean growPassChangedObstacles;
-    private List orderedPaths;
+    private List<OrthoPath> orderedPaths;
     private Map pathsToChildPaths;
 
     private PathStack stack;
-    private List subPaths;
+    private List<OrthoPath> subPaths;
 
-    private List userObstacles;
-    private List userPaths;
-    private List workingPaths;
+    private List<VertexRectangle> userObstacles;
+    private List<OrthoPath> userPaths;
+    private List<OrthoPath> workingPaths;
 
     /**
      * Creates a new shortest path routing.
      */
     public OrthogonalShortRouter() {
-        userPaths = new ArrayList();
-        workingPaths = new ArrayList();
-        pathsToChildPaths = new HashMap();
-        userObstacles = new ArrayList();
+        userPaths = new ArrayList<>();
+        workingPaths = new ArrayList<>();
+        pathsToChildPaths = new HashMap<>();
+        userObstacles = new ArrayList<>();
     }
 
     /**
@@ -86,22 +102,22 @@ public class OrthogonalShortRouter {
         for (int i = 0; i < orderedPaths.size(); i++) {
             OrthoPath path = (OrthoPath) orderedPaths.get(i);
             VertexSegment segment = null;
-            path.points.addPoint(new Point(path.start.x, path.start.y));
-            for (int v = 0; v < path.grownSegments.size(); v++) {
-                segment = (VertexSegment) path.grownSegments.get(v);
+            path.points.addPoint(new Point(path.getStart().x, path.getStart().y));
+            for (int v = 0; v < path.getGrownSegments().size(); v++) {
+                segment = (VertexSegment) path.getGrownSegments().get(v);
                 VertexPoint vertex = segment.end;
 
-                if (vertex != null && v < path.grownSegments.size() - 1) {
-                    if (vertex.type == VertexPoint.INNIE) {
+                if (vertex != null && v < path.getGrownSegments().size() - 1) {
+                    if (vertex.getType() == VertexPoint.INNIE) {
                         vertex.count++;
                         path.points.addPoint(vertex.bend(vertex.count));
                     } else {
-                        path.points.addPoint(vertex.bend(vertex.totalCount));
+                        path.points.addPoint(vertex.bend(vertex.getTotalCount()));
                         vertex.totalCount--;
                     }
                 }
             }
-            path.points.addPoint(new Point(path.end.x, path.end.y));
+            path.points.addPoint(new Point(path.getEnd().x, path.getEnd().y));
         }
     }
 
@@ -111,17 +127,23 @@ public class OrthogonalShortRouter {
      * @param vertex the vertex to check
      */
     private void checkVertexForIntersections(VertexPoint vertex) {
-        if (vertex.nearestObstacle != 0 || vertex.nearestObstacleChecked)
+        if (vertex.getNearestObstacle() != 0 || vertex.isNearestObstacleChecked())
             return;
         int sideLength, x, y;
 
         sideLength = 2 * (vertex.totalCount * getSpacing()) + 1;
 
-        if ((vertex.positionOnObstacle & PositionConstants.NORTH) > 0)
+        if ((vertex.getPositionOnObstacle() & PositionConstants.NORTH) > 0) {
+        } else if ((vertex.getPositionOnObstacle() & PositionConstants.SOUTH) > 0) {
+        } else if ((vertex.getPositionOnObstacle() & PositionConstants.EAST) > 0) {
+        } else if ((vertex.getPositionOnObstacle() & PositionConstants.WEST) > 0) {
+        }
+
+        if ((vertex.getPositionOnObstacle() & PositionConstants.NORTH) > 0)
             y = vertex.y - sideLength;
         else
             y = vertex.y;
-        if ((vertex.positionOnObstacle & PositionConstants.EAST) > 0)
+        if ((vertex.getPositionOnObstacle() & PositionConstants.EAST) > 0)
             x = vertex.x;
         else
             x = vertex.x - sideLength;
@@ -132,7 +154,7 @@ public class OrthogonalShortRouter {
 
         for (int o = 0; o < userObstacles.size(); o++) {
             VertexRectangle obs = (VertexRectangle) userObstacles.get(o);
-            if (obs != vertex.obs && r.intersects(obs)) {
+            if (obs != vertex.getObs() && r.intersects(obs)) {
                 int pos = obs.getPosition(vertex);
                 if (pos == 0)
                     continue;
@@ -150,15 +172,15 @@ public class OrthogonalShortRouter {
                     // use left
                     xDist = obs.x - vertex.x;
 
-                if (Math.max(xDist, yDist) < vertex.nearestObstacle || vertex.nearestObstacle == 0) {
-                    vertex.nearestObstacle = Math.max(xDist, yDist);
+                if (Math.max(xDist, yDist) < vertex.getNearestObstacle() || vertex.getNearestObstacle() == 0) {
+                    vertex.setNearestObstacle(Math.max(xDist, yDist));
                     vertex.updateOffset();
                 }
 
             }
         }
 
-        vertex.nearestObstacleChecked = true;
+        vertex.setNearestObstacleChecked(true);
     }
 
     /**
@@ -168,8 +190,8 @@ public class OrthogonalShortRouter {
         for (int i = 0; i < workingPaths.size(); i++) {
             OrthoPath path = (OrthoPath) workingPaths.get(i);
 
-            for (int s = 0; s < path.segments.size() - 1; s++) {
-                VertexPoint vertex = ((VertexSegment) path.segments.get(s)).end;
+            for (int s = 0; s < path.getSegments().size() - 1; s++) {
+                VertexPoint vertex = ((VertexSegment) path.getSegments().get(s)).end;
                 checkVertexForIntersections(vertex);
             }
         }
@@ -192,8 +214,8 @@ public class OrthogonalShortRouter {
     private void countVertices() {
         for (int i = 0; i < workingPaths.size(); i++) {
             OrthoPath path = (OrthoPath) workingPaths.get(i);
-            for (int v = 0; v < path.segments.size() - 1; v++)
-                ((VertexSegment) path.segments.get(v)).end.totalCount++;
+            for (int v = 0; v < path.getSegments().size() - 1; v++)
+                ((VertexSegment) path.getSegments().get(v)).end.totalCount++;
         }
     }
 
@@ -203,7 +225,7 @@ public class OrthogonalShortRouter {
      * @param vertex the vertex that has the paths
      */
     private boolean dirtyPathsOn(VertexPoint vertex) {
-        List paths = vertex.paths;
+        List<OrthoPath> paths = vertex.getPaths();
         if (paths != null && paths.size() != 0) {
             for (int i = 0; i < paths.size(); i++)
                 ((OrthoPath) paths.get(i)).isDirty = true;
@@ -211,26 +233,6 @@ public class OrthogonalShortRouter {
         }
         return false;
     }
-
-    /**
-     * Resyncs the parent paths with any new child paths that are necessary because
-     * bendpoints have been added to the parent path.
-     * 
-     * private void generateChildPaths() { for (int i = 0; i < userPaths.size();
-     * i++) { OrthoPath path = (OrthoPath)userPaths.get(i); PointList bendPoints =
-     * path.bendpoints; if (bendPoints != null && bendPoints.size() != 0) { List
-     * childPaths = new ArrayList(bendPoints.size() + 1); OrthoPath child = null; Vertex
-     * prevVertex = path.start; Vertex currVertex = null;
-     * 
-     * for (int b = 0; b < bendPoints.size(); b++) { Point bp =
-     * (Point)bendPoints.getPoint(b); currVertex = new Vertex(bp, null); child = new
-     * OrthoPath(prevVertex, currVertex); childPaths.add(child); workingPaths.add(child);
-     * prevVertex = currVertex; }
-     * 
-     * child = new OrthoPath(prevVertex, path.end); childPaths.add(child);
-     * workingPaths.add(child); pathsToChildPaths.put(path, childPaths); } else
-     * workingPaths.add(path); } //End FOR }
-     */
 
     /**
      * Returns the closest vertex to the given segment.
@@ -297,21 +299,21 @@ public class OrthogonalShortRouter {
         for (int i = 0; i < workingPaths.size(); i++) {
             OrthoPath path = (OrthoPath) workingPaths.get(i);
 
-            for (int e = 0; e < path.excludedVertexRectangles.size(); e++)
-                ((VertexRectangle) path.excludedVertexRectangles.get(e)).exclude = true;
+            for (int e = 0; e < path.getExcludedVertexRectangles().size(); e++)
+                ((VertexRectangle) path.getExcludedVertexRectangles().get(e)).exclude = true;
 
-            if (path.grownSegments.size() == 0) {
-                for (int s = 0; s < path.segments.size(); s++)
-                    testOffsetSegmentForIntersections((VertexSegment) path.segments.get(s), -1, path);
+            if (path.getGrownSegments().size() == 0) {
+                for (int s = 0; s < path.getSegments().size(); s++)
+                    testOffsetSegmentForIntersections((VertexSegment) path.getSegments().get(s), -1, path);
             } else {
                 int counter = 0;
-                List currentSegments = new ArrayList(path.grownSegments);
+                List<Object> currentSegments = new ArrayList<>(path.getGrownSegments());
                 for (int s = 0; s < currentSegments.size(); s++)
                     counter += testOffsetSegmentForIntersections((VertexSegment) currentSegments.get(s), s + counter, path);
             }
 
-            for (int e = 0; e < path.excludedVertexRectangles.size(); e++)
-                ((VertexRectangle) path.excludedVertexRectangles.get(e)).exclude = false;
+            for (int e = 0; e < path.getExcludedVertexRectangles().size(); e++)
+                ((VertexRectangle) path.getExcludedVertexRectangles().get(e)).exclude = false;
 
         }
 
@@ -377,16 +379,16 @@ public class OrthogonalShortRouter {
         VertexSegment nextSegment = null;
         VertexPoint vertex = null;
         boolean agree = false;
-        for (int v = 0; v < path.grownSegments.size() - 1; v++) {
-            segment = (VertexSegment) path.grownSegments.get(v);
-            nextSegment = (VertexSegment) path.grownSegments.get(v + 1);
+        for (int v = 0; v < path.getGrownSegments().size() - 1; v++) {
+            segment = (VertexSegment) path.getGrownSegments().get(v);
+            nextSegment = (VertexSegment) path.getGrownSegments().get(v + 1);
             vertex = segment.end;
-            long crossProduct = segment.crossProduct(new VertexSegment(vertex, vertex.obs.center));
+            long crossProduct = segment.crossProduct(new VertexSegment(vertex, vertex.getObs().center));
 
-            if (vertex.type == VertexPoint.NOT_SET) {
+            if (vertex.getType() == VertexPoint.NOT_SET) {
                 labelVertex(segment, crossProduct, path);
-            } else if (!path.isInverted && ((crossProduct > 0 && vertex.type == VertexPoint.OUTIE)
-                || (crossProduct < 0 && vertex.type == VertexPoint.INNIE))) {
+            } else if (!path.isInverted && ((crossProduct > 0 && vertex.getType() == VertexPoint.OUTIE)
+                || (crossProduct < 0 && vertex.getType() == VertexPoint.INNIE))) {
                 if (agree) {
                     // split detected.
                     stack.push(getSubpathForSplit(path, segment));
@@ -395,17 +397,17 @@ public class OrthogonalShortRouter {
                     path.isInverted = true;
                     path.invertPriorVertices(segment);
                 }
-            } else if (path.isInverted && ((crossProduct < 0 && vertex.type == VertexPoint.OUTIE)
-                || (crossProduct > 0 && vertex.type == VertexPoint.INNIE))) {
+            } else if (path.isInverted && ((crossProduct < 0 && vertex.getType() == VertexPoint.OUTIE)
+                || (crossProduct > 0 && vertex.getType() == VertexPoint.INNIE))) {
                 // split detected.
                 stack.push(getSubpathForSplit(path, segment));
                 return;
             } else
                 agree = true;
 
-            if (vertex.paths != null) {
-                for (int i = 0; i < vertex.paths.size(); i++) {
-                    OrthoPath nextPath = (OrthoPath) vertex.paths.get(i);
+            if (vertex.getPaths() != null) {
+                for (int i = 0; i < vertex.getPaths().size(); i++) {
+                    OrthoPath nextPath = (OrthoPath) vertex.getPaths().get(i);
                     if (!nextPath.isMarked) {
                         nextPath.isMarked = true;
                         stack.push(nextPath);
@@ -453,19 +455,22 @@ public class OrthogonalShortRouter {
     private void labelVertex(VertexSegment segment, long crossProduct, OrthoPath path) {
         // assumes vertex in question is segment.end
         if (crossProduct > 0) {
-            if (path.isInverted)
-                segment.end.type = VertexPoint.OUTIE;
-            else
-                segment.end.type = VertexPoint.INNIE;
+            if (path.isInverted) {
+                segment.end.setType(VertexPoint.OUTIE);
+            } else {
+                segment.end.setType(VertexPoint.INNIE);
+            }
         } else if (crossProduct < 0) {
-            if (path.isInverted)
-                segment.end.type = VertexPoint.INNIE;
-            else
-                segment.end.type = VertexPoint.OUTIE;
-        } else if (segment.start.type != VertexPoint.NOT_SET)
-            segment.end.type = segment.start.type;
-        else
-            segment.end.type = VertexPoint.INNIE;
+            if (path.isInverted) {
+                segment.end.setType(VertexPoint.INNIE);
+            } else {
+                segment.end.setType(VertexPoint.OUTIE);
+            }
+        } else if (segment.start.getType() != VertexPoint.NOT_SET) {
+            segment.end.setType(segment.start.getType());
+        } else {
+            segment.end.setType(VertexPoint.INNIE);
+        }
     }
 
     /**
@@ -479,17 +484,17 @@ public class OrthogonalShortRouter {
         path.isMarked = true;
         VertexSegment segment = null;
         VertexPoint vertex = null;
-        for (int v = 0; v < path.grownSegments.size() - 1; v++) {
-            segment = (VertexSegment) path.grownSegments.get(v);
+        for (int v = 0; v < path.getGrownSegments().size() - 1; v++) {
+            segment = (VertexSegment) path.getGrownSegments().get(v);
             vertex = segment.end;
-            double thisAngle = ((Double) vertex.cachedCosines.get(path)).doubleValue();
+            double thisAngle = ((Double) vertex.getCachedCosines().get(path)).doubleValue();
             if (path.isInverted)
                 thisAngle = -thisAngle;
 
-            for (int i = 0; i < vertex.paths.size(); i++) {
-                OrthoPath vPath = (OrthoPath) vertex.paths.get(i);
+            for (int i = 0; i < vertex.getPaths().size(); i++) {
+                OrthoPath vPath = (OrthoPath) vertex.getPaths().get(i);
                 if (!vPath.isMarked) {
-                    double otherAngle = ((Double) vertex.cachedCosines.get(vPath)).doubleValue();
+                    double otherAngle = ((Double) vertex.getCachedCosines().get(vPath)).doubleValue();
 
                     if (vPath.isInverted)
                         otherAngle = -otherAngle;
@@ -530,14 +535,15 @@ public class OrthogonalShortRouter {
 
             for (int i = 0; i < childPaths.size(); i++) {
                 childPath = (OrthoPath) childPaths.get(i);
-                System.out.println(childPath);
-                
+                System.out.println("i:" + i + "  " + childPath.getStartPoint().toString());
+                System.out.println("i:" + i + "  " + childPath.getEndPoint().toString());
+
                 path.points.addAll(childPath.getPoints());
                 // path will overlap
                 path.points.removePoint(path.points.size() - 1);
                 // path.grownSegments.addAll(childPath.grownSegments);
-                path.segments.addAll(childPath.segments);
-                path.visibleVertexRectangles.addAll(childPath.visibleVertexRectangles);
+                path.getSegments().addAll(childPath.getSegments());
+                path.getVisibleVertexRectangles().addAll(childPath.getVisibleVertexRectangles());
             }
 
             // add last point.
@@ -604,8 +610,8 @@ public class OrthogonalShortRouter {
         }
         for (int i = 0; i < workingPaths.size(); i++) {
             OrthoPath path = (OrthoPath) workingPaths.get(i);
-            path.start.fullReset();
-            path.end.fullReset();
+            path.getStart().fullReset();
+            path.getEnd().fullReset();
         }
     }
 
@@ -694,11 +700,11 @@ public class OrthogonalShortRouter {
             path.fullReset();
 
             boolean pathFoundCheck = path.generateShortestPath(userObstacles);
-            if (!pathFoundCheck || path.end.cost > path.threshold) {
+            if (!pathFoundCheck || path.getEnd().getCost() > path.getThreshold()) {
                 // path not found, or path found was too long
                 resetVertices();
                 path.fullReset();
-                path.threshold = 0;
+                path.setThreshold(0);
                 pathFoundCheck = path.generateShortestPath(userObstacles);
             }
 
@@ -783,72 +789,85 @@ public class OrthogonalShortRouter {
      * @return 1 if new segments have been inserted
      */
     private int testOffsetSegmentForIntersections(VertexSegment segment, int index, OrthoPath path) {
-        for (int i = 0; i < userObstacles.size(); i++) {
-            VertexRectangle obs = (VertexRectangle) userObstacles.get(i);
-
-            if (segment.end.obs == obs || segment.start.obs == obs || obs.exclude)
-                continue;
-            VertexPoint vertex = null;
-
-            int offset = getSpacing();
-            if (segment.getSlope() < 0) {
-                if (segment.intersects(obs.topLeft.x - offset, obs.topLeft.y - offset, obs.bottomRight.x + offset,
-                    obs.bottomRight.y + offset))
-                    vertex = getNearestVertex(obs.topLeft, obs.bottomRight, segment);
-                else if (segment.intersects(obs.bottomLeft.x - offset, obs.bottomLeft.y + offset,
-                    obs.topRight.x + offset, obs.topRight.y - offset))
-                    vertex = getNearestVertex(obs.bottomLeft, obs.topRight, segment);
-            } else {
-                if (segment.intersects(obs.bottomLeft.x - offset, obs.bottomLeft.y + offset, obs.topRight.x + offset,
-                    obs.topRight.y - offset))
-                    vertex = getNearestVertex(obs.bottomLeft, obs.topRight, segment);
-                else if (segment.intersects(obs.topLeft.x - offset, obs.topLeft.y - offset, obs.bottomRight.x + offset,
-                    obs.bottomRight.y + offset))
-                    vertex = getNearestVertex(obs.topLeft, obs.bottomRight, segment);
-            }
-
-            if (vertex != null) {
-                Rectangle vRect = vertex.getDeformedRectangle(offset);
-                if (segment.end.obs != null) {
-                    Rectangle endRect = segment.end.getDeformedRectangle(offset);
-                    if (vRect.intersects(endRect))
-                        continue;
-                }
-                if (segment.start.obs != null) {
-                    Rectangle startRect = segment.start.getDeformedRectangle(offset);
-                    if (vRect.intersects(startRect))
-                        continue;
-                }
-
-                VertexSegment newSegmentStart = new VertexSegment(segment.start, vertex);
-                VertexSegment newSegmentEnd = new VertexSegment(vertex, segment.end);
-
-                vertex.totalCount++;
-                vertex.nearestObstacleChecked = false;
-
-                vertex.shrink();
-                checkVertexForIntersections(vertex);
-                vertex.grow();
-
-                if (vertex.nearestObstacle != 0)
-                    vertex.updateOffset();
-
-                growPassChangedObstacles = true;
-
-                if (index != -1) {
-                    path.grownSegments.remove(segment);
-                    path.grownSegments.add(index, newSegmentStart);
-                    path.grownSegments.add(index + 1, newSegmentEnd);
-                } else {
-                    path.grownSegments.add(newSegmentStart);
-                    path.grownSegments.add(newSegmentEnd);
-                }
-                return 1;
-            }
-        }
-        if (index == -1)
-            path.grownSegments.add(segment);
         return 0;
+//        for (int i = 0; i < userObstacles.size(); i++) {
+//            VertexRectangle obs = (VertexRectangle) userObstacles.get(i);
+//
+//            if (segment.end.obs == obs || segment.start.obs == obs || obs.exclude)
+//                continue;
+//            VertexPoint vertex = null;
+//
+//            int offset = getSpacing();
+//            if (segment.getSlope() < 0) {
+//                if (segment.intersects(obs.topLeft.x - offset, obs.topLeft.y - offset, obs.bottomRight.x + offset,
+//                    obs.bottomRight.y + offset)) {
+//                    vertex = getNearestVertex(obs.topLeft, obs.bottomRight, segment);
+//                  
+//                }
+//                else if (segment.intersects(obs.bottomLeft.x - offset, obs.bottomLeft.y + offset,
+//                    obs.topRight.x + offset, obs.topRight.y - offset)) {
+//                    vertex = getNearestVertex(obs.bottomLeft, obs.topRight, segment);
+//                }
+//            } else {
+//                if (segment.intersects(obs.bottomLeft.x - offset, obs.bottomLeft.y + offset, obs.topRight.x + offset,
+//                    obs.topRight.y - offset)) {
+//                    vertex = getNearestVertex(obs.bottomLeft, obs.topRight, segment);
+//                }
+//                else if (segment.intersects(obs.topLeft.x - offset, obs.topLeft.y - offset, obs.bottomRight.x + offset,
+//                    obs.bottomRight.y + offset)) {
+//                    vertex = getNearestVertex(obs.topLeft, obs.bottomRight, segment);
+//                }
+//            }
+//
+//            if (vertex != null) {
+//                Rectangle vRect = vertex.getDeformedRectangle(offset);
+//                if (segment.end.obs != null) {
+//                    Rectangle endRect = segment.end.getDeformedRectangle(offset);
+//                    if (vRect.intersects(endRect))
+//                        vertex=null;
+//                        continue;
+//                }
+//                if (segment.start.obs != null) {
+//                    Rectangle startRect = segment.start.getDeformedRectangle(offset);
+//                    if (vRect.intersects(startRect))
+//                        vertex=null;
+//                        continue;
+//                }
+//              
+//                VertexRectangle vr = new VertexRectangle(vRect);
+//                VertexSegment newSegmentStart = new VertexSegment(segment.start, vr.topRight);
+//                VertexSegment newSegmentEnd = new VertexSegment(vr.bottomRight, segment.end);
+//
+//               //    VertexSegment newSegmentStart = new VertexSegment(segment.start, vertex);
+//               //    VertexSegment newSegmentEnd = new VertexSegment(vertex, segment.end);
+//                
+//                vertex.totalCount++;
+//                vertex.nearestObstacleChecked = false;
+//                vertex.shrink();
+//                checkVertexForIntersections(vertex);
+//                vertex.grow();
+//                if (vertex.nearestObstacle != 0)
+//                    vertex.updateOffset();
+//
+//                growPassChangedObstacles = true;
+//
+//                if (index != -1) {
+//                    path.grownSegments.remove(segment);
+//                    path.grownSegments.add(index, newSegmentStart);
+//                    path.grownSegments.add(index + 1, newSegmentEnd);
+//                } else {
+//                    path.grownSegments.add(newSegmentStart);
+//                    path.grownSegments.add(newSegmentEnd);
+//                }
+//                return 1;
+//            }
+//        }
+//        if (index == -1) {
+//            
+//            path.grownSegments.add(segment);
+//        }
+//         
+//        return 0;
     }
 
     /**
@@ -876,6 +895,11 @@ public class OrthogonalShortRouter {
         boolean result = internalRemoveObstacle(oldBounds);
         result |= addObstacle(newBounds);
         return result;
+    }
+
+    public List<VertexRectangle> getUserObstacle() {
+
+        return userObstacles;
     }
 
 }

@@ -83,7 +83,7 @@ public class CrowsFootDiagramNotation extends ERDNotationBase implements ERDNota
 
     @Override
     public double getIndentation() {
-        return 30;
+        return 35;
     }
 
 }

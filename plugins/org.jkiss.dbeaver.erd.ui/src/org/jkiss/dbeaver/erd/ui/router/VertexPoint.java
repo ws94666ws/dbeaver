@@ -1,3 +1,19 @@
+/*
+ * DBeaver - Universal Database Manager
+ * Copyright (C) 2010-2023 DBeaver Corp and others
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jkiss.dbeaver.erd.ui.router;
 
 import java.util.ArrayList;
@@ -9,31 +25,32 @@ import org.eclipse.draw2d.PositionConstants;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.Rectangle;
 
-
 public class VertexPoint extends Point {
 
+    private static final long serialVersionUID = 1L;
     // constants for the vertex type
     static final int NOT_SET = 0;
     static final int INNIE = 1;
     static final int OUTIE = 2;
 
     // for shortest path
-    List neighbors;
-    boolean isPermanent = false;
-    VertexPoint label;
-    double cost = 0;
+    private List<Object> neighbors;
+    private boolean isPermanent = false;
+    private VertexPoint label;
+    private double cost = 0;
 
     // for routing
-    int nearestObstacle = 0;
-    double offset = 0;
-    int type = NOT_SET;
+    private int nearestObstacle = 0;
+    private double offset = 0;
+    private int type = NOT_SET;
     int count = 0;
     int totalCount = 0;
-    VertexRectangle obs;
-    List paths;
-    boolean nearestObstacleChecked = false;
-    Map cachedCosines;
-    int positionOnObstacle = -1;
+    private VertexRectangle obs;
+    private List<OrthoPath> paths;
+    private boolean nearestObstacleChecked = false;
+    private Map<OrthoPath, Double> cachedCosines;
+
+    private int positionOnObstacle = -1;
 
     private int origX, origY;
 
@@ -69,10 +86,10 @@ public class VertexPoint extends Point {
      * @param start the segment to this vertex
      * @param end   the segment away from this vertex
      */
-    void addPath(OrthoPath path, VertexSegment start, VertexSegment end) {
+    public void addPath(OrthoPath path, VertexSegment start, VertexSegment end) {
         if (paths == null) {
-            paths = new ArrayList();
-            cachedCosines = new HashMap();
+            paths = new ArrayList<>();
+            cachedCosines = new HashMap<>();
         }
         if (!paths.contains(path))
             paths.add(path);
@@ -86,7 +103,7 @@ public class VertexPoint extends Point {
      * @param modifier the offset
      * @return a Point that has been bent around this vertex
      */
-    Point bend(int modifier) {
+    public Point bend(int modifier) {
         Point point = new Point(x, y);
         if ((positionOnObstacle & PositionConstants.NORTH) > 0)
             point.y -= modifier * offset;
@@ -102,16 +119,16 @@ public class VertexPoint extends Point {
     /**
      * Resets all fields on this Vertex.
      */
-    void fullReset() {
+    public void fullReset() {
         totalCount = 0;
         type = NOT_SET;
         count = 0;
         cost = 0;
         offset = getSpacing();
         nearestObstacle = 0;
-        label = null;
+        setLabel(null);
         nearestObstacleChecked = false;
-        isPermanent = false;
+        setPermanent(false);
         if (neighbors != null)
             neighbors.clear();
         if (cachedCosines != null)
@@ -127,7 +144,7 @@ public class VertexPoint extends Point {
      * @param extraOffset a buffer to add to the region.
      * @return the rectangle
      */
-    Rectangle getDeformedRectangle(int extraOffset) {
+    public Rectangle getDeformedRectangle(int extraOffset) {
         Rectangle rect = new Rectangle(0, 0, 0, 0);
 
         if ((positionOnObstacle & PositionConstants.NORTH) > 0) {
@@ -149,16 +166,16 @@ public class VertexPoint extends Point {
     }
 
     private int getSpacing() {
-        if (obs == null)
+        if (obs == null) {
             return 0;
-        // return obs.getSpacing();
+        }
         return 1;
     }
 
     /**
      * Grows this vertex by its offset to its maximum size.
      */
-    void grow() {
+    public void grow() {
         int modifier;
 
         if (nearestObstacle == 0)
@@ -179,7 +196,7 @@ public class VertexPoint extends Point {
     /**
      * Shrinks this vertex to its original size.
      */
-    void shrink() {
+    public void shrink() {
         x = origX;
         y = origY;
     }
@@ -187,7 +204,7 @@ public class VertexPoint extends Point {
     /**
      * Updates the offset of this vertex based on its shortest distance.
      */
-    void updateOffset() {
+    public void updateOffset() {
         if (nearestObstacle != 0)
             offset = ((nearestObstacle / 2) - 1) / totalCount;
     }
@@ -198,6 +215,90 @@ public class VertexPoint extends Point {
     @Override
     public String toString() {
         return "V(" + origX + ", " + origY + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    }
+
+    public boolean isPermanent() {
+        return isPermanent;
+    }
+
+    public void setPermanent(boolean isPermanent) {
+        this.isPermanent = isPermanent;
+    }
+
+    public VertexPoint getLabel() {
+        return label;
+    }
+
+    public void setLabel(VertexPoint label) {
+        this.label = label;
+    }
+
+    public double getCost() {
+        return cost;
+    }
+
+    public boolean isNearestObstacleChecked() {
+        return nearestObstacleChecked;
+    }
+
+    public void setNearestObstacleChecked(boolean flag) {
+        nearestObstacleChecked = flag;
+    }
+
+    public int getTotalCount() {
+        return totalCount;
+    }
+
+    public int getPositionOnObstacle() {
+        return positionOnObstacle;
+    }
+
+    public void setPositionOnObstacle(int position) {
+        this.positionOnObstacle = position;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public List<Object> getNeighbors() {
+        return neighbors;
+    }
+
+    public void setNeighbors(ArrayList<Object> arrayList) {
+        neighbors = arrayList;
+    }
+
+    public VertexRectangle getObs() {
+        return obs;
+    }
+
+    public int getNearestObstacle() {
+        return nearestObstacle;
+    }
+
+    public void setNearestObstacle(int nearestObstacle) {
+        this.nearestObstacle = nearestObstacle;
+    }
+
+    public Map<OrthoPath, Double> getCachedCosines() {
+        return cachedCosines;
+    }
+
+    public void setCachedCosines(Map<OrthoPath, Double> cachedCosines) {
+        this.cachedCosines = cachedCosines;
+    }
+
+    public List<OrthoPath> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(List<OrthoPath> paths) {
+        this.paths = paths;
     }
 
 }
