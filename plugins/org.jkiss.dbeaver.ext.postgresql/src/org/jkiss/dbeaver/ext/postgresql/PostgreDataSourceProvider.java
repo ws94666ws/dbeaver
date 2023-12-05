@@ -197,14 +197,12 @@ public class PostgreDataSourceProvider extends JDBCDataSourceProvider implements
         foldersToExamine.add("/usr/local/bin");
         if (RuntimeUtils.isLinux()) {
             foldersToExamine.add("/etc/alternatives");
-        }
-        if (RuntimeUtils.isMacOS()) {
+        } else if (RuntimeUtils.isMacOS()) {
             foldersToExamine.add("/Library/PostgreSQL"); //standard location for EDB installer
             foldersToExamine.add("/Applications/Postgres.app/Contents/versions");
             if (RuntimeUtils.isOSArchAMD64()) {
                 foldersToExamine.add(NativeClientLocationUtils.HOMEBREW_FORMULAE_LOCATION);
-            }
-            if (RuntimeUtils.isOSArchAArch64()) {
+            } else if (RuntimeUtils.isOSArchAArch64()) {
                 foldersToExamine.add("/opt/homebrew/bin");
                 foldersToExamine.add("/opt/homebrew/Cellar");
                 foldersToExamine.add("/opt/homebrew/opt");
@@ -213,23 +211,23 @@ public class PostgreDataSourceProvider extends JDBCDataSourceProvider implements
 
         for (String folder : foldersToExamine) {
             Path folderPath = Path.of(folder);
-            if (!folderPath.toFile().exists()) {
+            if (Files.notExists(folderPath)) {
                 continue;
             }
             try {
                 Files.walkFileTree(folderPath, new SimpleFileVisitor<>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    if (!file.endsWith("bin/psql")) {
-                        return FileVisitResult.CONTINUE;
-                    }
-                    if (file.toFile().canExecute()) {
-                        Path grandparent = IOUtils.getGrandparent(file);
-                        if (grandparent != null) {
-                            localClients.add(new PostgreServerHome(grandparent.toAbsolutePath().toString()));
+                        if (!file.endsWith("bin/psql")) {
+                            return FileVisitResult.CONTINUE;
                         }
-                    }
-                    return FileVisitResult.SKIP_SIBLINGS;
+                        if (file.toFile().canExecute()) {
+                            Path grandparent = IOUtils.getGrandparent(file);
+                            if (grandparent != null) {
+                                localClients.add(new PostgreServerHome(grandparent.toAbsolutePath().toString()));
+                            }
+                        }
+                        return FileVisitResult.SKIP_SIBLINGS;
                     }
                 });
             } catch (IOException e) {
